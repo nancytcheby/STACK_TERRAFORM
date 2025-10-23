@@ -304,6 +304,12 @@ variable "analytics_prefix" {
   default     = ""
 }
 
+variable "analytics_prefix_id" {
+  description = "Optional prefix scope for analytics (empty = whole bucket)"
+  type        = string
+  default     = ""
+}
+
 variable "analytics_tags" {
   description = "Optional tag filter for analytics"
   type        = map(string)
