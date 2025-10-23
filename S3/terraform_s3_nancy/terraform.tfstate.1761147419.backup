@@ -1,0 +1,2032 @@
+{
+  "version": 4,
+  "terraform_version": "1.13.3",
+  "serial": 118,
+  "lineage": "e07c4246-1589-4b85-fffd-db9dc5fcc962",
+  "outputs": {
+    "analytics_config_name": {
+      "value": "default-analysis",
+      "type": "string"
+    },
+    "analytics_enabled": {
+      "value": true,
+      "type": "bool"
+    },
+    "analytics_export_bucket": {
+      "value": "stack-buck3-nancy-analytics",
+      "type": "string"
+    },
+    "bucket_arn": {
+      "value": "arn:aws:s3:::stack-buck3-nancy",
+      "type": "string"
+    },
+    "bucket_id": {
+      "value": "stack-buck3-nancy",
+      "type": "string"
+    },
+    "cloudtrail_log_bucket": {
+      "value": "stack-buck3-nancy-ct-logs",
+      "type": "string"
+    },
+    "dest_account_id": {
+      "value": "",
+      "type": "string"
+    },
+    "lifecycle_rule_status": {
+      "value": "Enabled",
+      "type": "string"
+    },
+    "lifecycle_transition_days": {
+      "value": "30 / 90",
+      "type": "string"
+    },
+    "replica_bucket_arn": {
+      "value": "arn:aws:s3:::stack-buck3-nancy-replica",
+      "type": "string"
+    },
+    "replica_bucket_name": {
+      "value": "stack-buck3-nancy-replica",
+      "type": "string"
+    },
+    "replica_region": {
+      "value": "us-west-2",
+      "type": "string"
+    },
+    "replication_enabled": {
+      "value": true,
+      "type": "bool"
+    },
+    "replication_role_arn": {
+      "value": "arn:aws:iam::135576900189:role/stack-buck3-nancy-replication-role",
+      "type": "string"
+    },
+    "replication_rule_ids": {
+      "value": [
+        "replicate-to-stack-buck3-nancy-replica"
+      ],
+      "type": [
+        "list",
+        "string"
+      ]
+    },
+    "source_bucket_arn": {
+      "value": "arn:aws:s3:::stack-buck3-nancy",
+      "type": "string"
+    },
+    "source_bucket_name": {
+      "value": "stack-buck3-nancy",
+      "type": "string"
+    },
+    "sqs_queue_arn": {
+      "value": "arn:aws:sqs:us-east-1:135576900189:stack-buck3-nancy-s3-events",
+      "type": "string"
+    },
+    "sqs_queue_url": {
+      "value": "https://sqs.us-east-1.amazonaws.com/135576900189/stack-buck3-nancy-s3-events",
+      "type": "string"
+    },
+    "versioning_status": {
+      "value": "Enabled",
+      "type": "string"
+    },
+    "website_endpoint": {
+      "value": "stack-buck3-nancy.s3-website-us-east-1.amazonaws.com",
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "mode": "data",
+      "type": "aws_caller_identity",
+      "name": "current",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "account_id": "135576900189",
+            "arn": "arn:aws:iam::135576900189:user/stack_prog",
+            "id": "135576900189",
+            "user_id": "AIDAR7EIDKJOWFZ3EYEYP"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0
+        }
+      ]
+    },
+    {
+      "mode": "data",
+      "type": "aws_iam_policy_document",
+      "name": "replication",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "691932368",
+            "json": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"s3:ListBucket\",\n        \"s3:GetReplicationConfiguration\"\n      ],\n      \"Resource\": \"arn:aws:s3:::stack-buck3-nancy\"\n    },\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"s3:GetObjectVersionTagging\",\n        \"s3:GetObjectVersionAcl\",\n        \"s3:GetObjectVersion\"\n      ],\n      \"Resource\": \"arn:aws:s3:::stack-buck3-nancy/*\"\n    },\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"s3:ReplicateTags\",\n        \"s3:ReplicateObject\",\n        \"s3:ReplicateDelete\",\n        \"s3:ObjectOwnerOverrideToBucketOwner\"\n      ],\n      \"Resource\": \"arn:aws:s3:::stack-buck3-nancy-replica/*\"\n    }\n  ]\n}",
+            "minified_json": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"s3:ListBucket\",\"s3:GetReplicationConfiguration\"],\"Resource\":\"arn:aws:s3:::stack-buck3-nancy\"},{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObjectVersionTagging\",\"s3:GetObjectVersionAcl\",\"s3:GetObjectVersion\"],\"Resource\":\"arn:aws:s3:::stack-buck3-nancy/*\"},{\"Effect\":\"Allow\",\"Action\":[\"s3:ReplicateTags\",\"s3:ReplicateObject\",\"s3:ReplicateDelete\",\"s3:ObjectOwnerOverrideToBucketOwner\"],\"Resource\":\"arn:aws:s3:::stack-buck3-nancy-replica/*\"}]}",
+            "override_json": null,
+            "override_policy_documents": null,
+            "policy_id": null,
+            "source_json": null,
+            "source_policy_documents": null,
+            "statement": [
+              {
+                "actions": [
+                  "s3:GetReplicationConfiguration",
+                  "s3:ListBucket"
+                ],
+                "condition": [],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [],
+                "resources": [
+                  "arn:aws:s3:::stack-buck3-nancy"
+                ],
+                "sid": ""
+              },
+              {
+                "actions": [
+                  "s3:GetObjectVersion",
+                  "s3:GetObjectVersionAcl",
+                  "s3:GetObjectVersionTagging"
+                ],
+                "condition": [],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [],
+                "resources": [
+                  "arn:aws:s3:::stack-buck3-nancy/*"
+                ],
+                "sid": ""
+              },
+              {
+                "actions": [
+                  "s3:ObjectOwnerOverrideToBucketOwner",
+                  "s3:ReplicateDelete",
+                  "s3:ReplicateObject",
+                  "s3:ReplicateTags"
+                ],
+                "condition": [],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [],
+                "resources": [
+                  "arn:aws:s3:::stack-buck3-nancy-replica/*"
+                ],
+                "sid": ""
+              }
+            ],
+            "version": "2012-10-17"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0
+        }
+      ]
+    },
+    {
+      "mode": "data",
+      "type": "aws_iam_policy_document",
+      "name": "replication_trust",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "1765856792",
+            "json": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"s3.amazonaws.com\"\n      }\n    }\n  ]\n}",
+            "minified_json": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"sts:AssumeRole\",\"Principal\":{\"Service\":\"s3.amazonaws.com\"}}]}",
+            "override_json": null,
+            "override_policy_documents": null,
+            "policy_id": null,
+            "source_json": null,
+            "source_policy_documents": null,
+            "statement": [
+              {
+                "actions": [
+                  "sts:AssumeRole"
+                ],
+                "condition": [],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [
+                  {
+                    "identifiers": [
+                      "s3.amazonaws.com"
+                    ],
+                    "type": "Service"
+                  }
+                ],
+                "resources": [],
+                "sid": ""
+              }
+            ],
+            "version": "2012-10-17"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_cloudtrail",
+      "name": "s3_object_data_events",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "advanced_event_selector": [],
+            "arn": "arn:aws:cloudtrail:us-east-1:135576900189:trail/s3-object-events-trail",
+            "cloud_watch_logs_group_arn": "",
+            "cloud_watch_logs_role_arn": "",
+            "enable_log_file_validation": true,
+            "enable_logging": true,
+            "event_selector": [
+              {
+                "data_resource": [
+                  {
+                    "type": "AWS::S3::Object",
+                    "values": [
+                      "arn:aws:s3:::stack-buck3-nancy/"
+                    ]
+                  }
+                ],
+                "exclude_management_event_sources": [],
+                "include_management_events": false,
+                "read_write_type": "All"
+              }
+            ],
+            "home_region": "us-east-1",
+            "id": "arn:aws:cloudtrail:us-east-1:135576900189:trail/s3-object-events-trail",
+            "include_global_service_events": false,
+            "insight_selector": [],
+            "is_multi_region_trail": false,
+            "is_organization_trail": false,
+            "kms_key_id": "",
+            "name": "s3-object-events-trail",
+            "region": "us-east-1",
+            "s3_bucket_name": "stack-buck3-nancy-ct-logs",
+            "s3_key_prefix": "",
+            "sns_topic_arn": "",
+            "sns_topic_name": "",
+            "tags": {},
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "arn": "arn:aws:cloudtrail:us-east-1:135576900189:trail/s3-object-events-trail"
+          },
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "aws_s3_bucket.cloudtrail_logs",
+            "aws_s3_bucket.this",
+            "aws_s3_bucket_ownership_controls.cloudtrail_logs",
+            "aws_s3_bucket_policy.cloudtrail_logs",
+            "data.aws_caller_identity.current"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_policy",
+      "name": "replication",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::135576900189:policy/stack-buck3-nancy-replication-policy",
+            "attachment_count": 1,
+            "description": "",
+            "id": "arn:aws:iam::135576900189:policy/stack-buck3-nancy-replication-policy",
+            "name": "stack-buck3-nancy-replication-policy",
+            "name_prefix": "",
+            "path": "/",
+            "policy": "{\"Statement\":[{\"Action\":[\"s3:ListBucket\",\"s3:GetReplicationConfiguration\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:s3:::stack-buck3-nancy\"},{\"Action\":[\"s3:GetObjectVersionTagging\",\"s3:GetObjectVersionAcl\",\"s3:GetObjectVersion\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:s3:::stack-buck3-nancy/*\"},{\"Action\":[\"s3:ReplicateTags\",\"s3:ReplicateObject\",\"s3:ReplicateDelete\",\"s3:ObjectOwnerOverrideToBucketOwner\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:s3:::stack-buck3-nancy-replica/*\"}],\"Version\":\"2012-10-17\"}",
+            "policy_id": "ANPAR7EIDKJOVTLPQ3T3E",
+            "tags": {},
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "arn": "arn:aws:iam::135576900189:policy/stack-buck3-nancy-replication-policy"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.replica",
+            "aws_s3_bucket.this",
+            "data.aws_iam_policy_document.replication"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "replication",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::135576900189:role/stack-buck3-nancy-replication-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"s3.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2025-10-22T05:23:18Z",
+            "description": "",
+            "force_detach_policies": false,
+            "id": "stack-buck3-nancy-replication-role",
+            "inline_policy": [],
+            "managed_policy_arns": [
+              "arn:aws:iam::135576900189:policy/stack-buck3-nancy-replication-policy"
+            ],
+            "max_session_duration": 3600,
+            "name": "stack-buck3-nancy-replication-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": {},
+            "tags_all": {},
+            "unique_id": "AROAR7EIDKJOVBAR5HZMB"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "name": "stack-buck3-nancy-replication-role"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "data.aws_iam_policy_document.replication_trust"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "replication",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "stack-buck3-nancy-replication-role/arn:aws:iam::135576900189:policy/stack-buck3-nancy-replication-policy",
+            "policy_arn": "arn:aws:iam::135576900189:policy/stack-buck3-nancy-replication-policy",
+            "role": "stack-buck3-nancy-replication-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "policy_arn": "arn:aws:iam::135576900189:policy/stack-buck3-nancy-replication-policy",
+            "role": "stack-buck3-nancy-replication-role"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_policy.replication",
+            "aws_iam_role.replication",
+            "aws_s3_bucket.replica",
+            "aws_s3_bucket.this",
+            "data.aws_iam_policy_document.replication",
+            "data.aws_iam_policy_document.replication_trust"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket",
+      "name": "analytics_export",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "acceleration_status": "",
+            "acl": null,
+            "arn": "arn:aws:s3:::stack-buck3-nancy-analytics",
+            "bucket": "stack-buck3-nancy-analytics",
+            "bucket_domain_name": "stack-buck3-nancy-analytics.s3.amazonaws.com",
+            "bucket_prefix": "",
+            "bucket_region": "us-east-1",
+            "bucket_regional_domain_name": "stack-buck3-nancy-analytics.s3.us-east-1.amazonaws.com",
+            "cors_rule": [],
+            "force_destroy": false,
+            "grant": [
+              {
+                "id": "c6b4916bd57c7c77d48085434a40825f705fe534cec1cc8a0cf695f232376244",
+                "permissions": [
+                  "FULL_CONTROL"
+                ],
+                "type": "CanonicalUser",
+                "uri": ""
+              }
+            ],
+            "hosted_zone_id": "Z3AQBSTGFYJSTF",
+            "id": "stack-buck3-nancy-analytics",
+            "lifecycle_rule": [],
+            "logging": [],
+            "object_lock_configuration": [],
+            "object_lock_enabled": false,
+            "policy": "",
+            "region": "us-east-1",
+            "replication_configuration": [],
+            "request_payer": "BucketOwner",
+            "server_side_encryption_configuration": [
+              {
+                "rule": [
+                  {
+                    "apply_server_side_encryption_by_default": [
+                      {
+                        "kms_master_key_id": "",
+                        "sse_algorithm": "AES256"
+                      }
+                    ],
+                    "bucket_key_enabled": false
+                  }
+                ]
+              }
+            ],
+            "tags": {
+              "Owner": "Nancy Tcheby",
+              "Project": "S3-Terraform-Demo",
+              "Type": "S3Analytics"
+            },
+            "tags_all": {
+              "Owner": "Nancy Tcheby",
+              "Project": "S3-Terraform-Demo",
+              "Type": "S3Analytics"
+            },
+            "timeouts": null,
+            "versioning": [
+              {
+                "enabled": false,
+                "mfa_delete": false
+              }
+            ],
+            "website": [],
+            "website_domain": null,
+            "website_endpoint": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy-analytics",
+            "region": "us-east-1"
+          },
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxMjAwMDAwMDAwMDAwLCJkZWxldGUiOjM2MDAwMDAwMDAwMDAsInJlYWQiOjEyMDAwMDAwMDAwMDAsInVwZGF0ZSI6MTIwMDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket",
+      "name": "cloudtrail_logs",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "acceleration_status": "",
+            "acl": null,
+            "arn": "arn:aws:s3:::stack-buck3-nancy-ct-logs",
+            "bucket": "stack-buck3-nancy-ct-logs",
+            "bucket_domain_name": "stack-buck3-nancy-ct-logs.s3.amazonaws.com",
+            "bucket_prefix": "",
+            "bucket_region": "us-east-1",
+            "bucket_regional_domain_name": "stack-buck3-nancy-ct-logs.s3.us-east-1.amazonaws.com",
+            "cors_rule": [],
+            "force_destroy": false,
+            "grant": [
+              {
+                "id": "c6b4916bd57c7c77d48085434a40825f705fe534cec1cc8a0cf695f232376244",
+                "permissions": [
+                  "FULL_CONTROL"
+                ],
+                "type": "CanonicalUser",
+                "uri": ""
+              }
+            ],
+            "hosted_zone_id": "Z3AQBSTGFYJSTF",
+            "id": "stack-buck3-nancy-ct-logs",
+            "lifecycle_rule": [],
+            "logging": [],
+            "object_lock_configuration": [],
+            "object_lock_enabled": false,
+            "policy": "{\"Statement\":[{\"Action\":\"s3:PutObject\",\"Condition\":{\"StringEquals\":{\"s3:x-amz-acl\":\"bucket-owner-full-control\"}},\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cloudtrail.amazonaws.com\"},\"Resource\":\"arn:aws:s3:::stack-buck3-nancy-ct-logs/AWSLogs/135576900189/*\",\"Sid\":\"AWSCloudTrailWrite\"},{\"Action\":\"s3:GetBucketAcl\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cloudtrail.amazonaws.com\"},\"Resource\":\"arn:aws:s3:::stack-buck3-nancy-ct-logs\",\"Sid\":\"AWSCloudTrailAclCheck\"}],\"Version\":\"2012-10-17\"}",
+            "region": "us-east-1",
+            "replication_configuration": [],
+            "request_payer": "BucketOwner",
+            "server_side_encryption_configuration": [
+              {
+                "rule": [
+                  {
+                    "apply_server_side_encryption_by_default": [
+                      {
+                        "kms_master_key_id": "",
+                        "sse_algorithm": "AES256"
+                      }
+                    ],
+                    "bucket_key_enabled": false
+                  }
+                ]
+              }
+            ],
+            "tags": {
+              "Owner": "Nancy Tcheby",
+              "Project": "S3-Terraform-Demo",
+              "Type": "CloudTrailLogs"
+            },
+            "tags_all": {
+              "Owner": "Nancy Tcheby",
+              "Project": "S3-Terraform-Demo",
+              "Type": "CloudTrailLogs"
+            },
+            "timeouts": null,
+            "versioning": [
+              {
+                "enabled": false,
+                "mfa_delete": false
+              }
+            ],
+            "website": [],
+            "website_domain": null,
+            "website_endpoint": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy-ct-logs",
+            "region": "us-east-1"
+          },
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxMjAwMDAwMDAwMDAwLCJkZWxldGUiOjM2MDAwMDAwMDAwMDAsInJlYWQiOjEyMDAwMDAwMDAwMDAsInVwZGF0ZSI6MTIwMDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket",
+      "name": "logs",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "acceleration_status": "",
+            "acl": null,
+            "arn": "arn:aws:s3:::stack-buck3-nancy-logs",
+            "bucket": "stack-buck3-nancy-logs",
+            "bucket_domain_name": "stack-buck3-nancy-logs.s3.amazonaws.com",
+            "bucket_prefix": "",
+            "bucket_region": "us-east-1",
+            "bucket_regional_domain_name": "stack-buck3-nancy-logs.s3.us-east-1.amazonaws.com",
+            "cors_rule": [],
+            "force_destroy": false,
+            "grant": [
+              {
+                "id": "",
+                "permissions": [
+                  "READ_ACP",
+                  "WRITE"
+                ],
+                "type": "Group",
+                "uri": "http://acs.amazonaws.com/groups/s3/LogDelivery"
+              },
+              {
+                "id": "c6b4916bd57c7c77d48085434a40825f705fe534cec1cc8a0cf695f232376244",
+                "permissions": [
+                  "FULL_CONTROL"
+                ],
+                "type": "CanonicalUser",
+                "uri": ""
+              }
+            ],
+            "hosted_zone_id": "Z3AQBSTGFYJSTF",
+            "id": "stack-buck3-nancy-logs",
+            "lifecycle_rule": [],
+            "logging": [],
+            "object_lock_configuration": [],
+            "object_lock_enabled": false,
+            "policy": "",
+            "region": "us-east-1",
+            "replication_configuration": [],
+            "request_payer": "BucketOwner",
+            "server_side_encryption_configuration": [
+              {
+                "rule": [
+                  {
+                    "apply_server_side_encryption_by_default": [
+                      {
+                        "kms_master_key_id": "",
+                        "sse_algorithm": "AES256"
+                      }
+                    ],
+                    "bucket_key_enabled": false
+                  }
+                ]
+              }
+            ],
+            "tags": {
+              "Owner": "Nancy Tcheby",
+              "Project": "S3-Terraform-Demo",
+              "Type": "AccessLogs"
+            },
+            "tags_all": {
+              "Owner": "Nancy Tcheby",
+              "Project": "S3-Terraform-Demo",
+              "Type": "AccessLogs"
+            },
+            "timeouts": null,
+            "versioning": [
+              {
+                "enabled": false,
+                "mfa_delete": false
+              }
+            ],
+            "website": [],
+            "website_domain": null,
+            "website_endpoint": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy-logs",
+            "region": "us-east-1"
+          },
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxMjAwMDAwMDAwMDAwLCJkZWxldGUiOjM2MDAwMDAwMDAwMDAsInJlYWQiOjEyMDAwMDAwMDAwMDAsInVwZGF0ZSI6MTIwMDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket",
+      "name": "object_lock",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "acceleration_status": "",
+            "acl": null,
+            "arn": "arn:aws:s3:::stack-buck3-nancy-olock",
+            "bucket": "stack-buck3-nancy-olock",
+            "bucket_domain_name": "stack-buck3-nancy-olock.s3.amazonaws.com",
+            "bucket_prefix": "",
+            "bucket_region": "us-east-1",
+            "bucket_regional_domain_name": "stack-buck3-nancy-olock.s3.us-east-1.amazonaws.com",
+            "cors_rule": [],
+            "force_destroy": false,
+            "grant": [
+              {
+                "id": "c6b4916bd57c7c77d48085434a40825f705fe534cec1cc8a0cf695f232376244",
+                "permissions": [
+                  "FULL_CONTROL"
+                ],
+                "type": "CanonicalUser",
+                "uri": ""
+              }
+            ],
+            "hosted_zone_id": "Z3AQBSTGFYJSTF",
+            "id": "stack-buck3-nancy-olock",
+            "lifecycle_rule": [],
+            "logging": [],
+            "object_lock_configuration": [
+              {
+                "object_lock_enabled": "Enabled",
+                "rule": [
+                  {
+                    "default_retention": [
+                      {
+                        "days": 30,
+                        "mode": "GOVERNANCE",
+                        "years": 0
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "object_lock_enabled": true,
+            "policy": "",
+            "region": "us-east-1",
+            "replication_configuration": [],
+            "request_payer": "BucketOwner",
+            "server_side_encryption_configuration": [
+              {
+                "rule": [
+                  {
+                    "apply_server_side_encryption_by_default": [
+                      {
+                        "kms_master_key_id": "",
+                        "sse_algorithm": "AES256"
+                      }
+                    ],
+                    "bucket_key_enabled": false
+                  }
+                ]
+              }
+            ],
+            "tags": {
+              "Owner": "Nancy Tcheby",
+              "Project": "S3-Terraform-Demo",
+              "Type": "ObjectLockDemo"
+            },
+            "tags_all": {
+              "Owner": "Nancy Tcheby",
+              "Project": "S3-Terraform-Demo",
+              "Type": "ObjectLockDemo"
+            },
+            "timeouts": null,
+            "versioning": [
+              {
+                "enabled": true,
+                "mfa_delete": false
+              }
+            ],
+            "website": [],
+            "website_domain": null,
+            "website_endpoint": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy-olock",
+            "region": "us-east-1"
+          },
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxMjAwMDAwMDAwMDAwLCJkZWxldGUiOjM2MDAwMDAwMDAwMDAsInJlYWQiOjEyMDAwMDAwMDAwMDAsInVwZGF0ZSI6MTIwMDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket",
+      "name": "replica",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"].replica",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "acceleration_status": "",
+            "acl": null,
+            "arn": "arn:aws:s3:::stack-buck3-nancy-replica",
+            "bucket": "stack-buck3-nancy-replica",
+            "bucket_domain_name": "stack-buck3-nancy-replica.s3.amazonaws.com",
+            "bucket_prefix": "",
+            "bucket_region": "us-west-2",
+            "bucket_regional_domain_name": "stack-buck3-nancy-replica.s3.us-west-2.amazonaws.com",
+            "cors_rule": [],
+            "force_destroy": false,
+            "grant": [
+              {
+                "id": "c6b4916bd57c7c77d48085434a40825f705fe534cec1cc8a0cf695f232376244",
+                "permissions": [
+                  "FULL_CONTROL"
+                ],
+                "type": "CanonicalUser",
+                "uri": ""
+              }
+            ],
+            "hosted_zone_id": "Z3BJ6K6RIION7M",
+            "id": "stack-buck3-nancy-replica",
+            "lifecycle_rule": [],
+            "logging": [],
+            "object_lock_configuration": [],
+            "object_lock_enabled": false,
+            "policy": "",
+            "region": "us-west-2",
+            "replication_configuration": [],
+            "request_payer": "BucketOwner",
+            "server_side_encryption_configuration": [
+              {
+                "rule": [
+                  {
+                    "apply_server_side_encryption_by_default": [
+                      {
+                        "kms_master_key_id": "",
+                        "sse_algorithm": "AES256"
+                      }
+                    ],
+                    "bucket_key_enabled": false
+                  }
+                ]
+              }
+            ],
+            "tags": {
+              "Owner": "Nancy Tcheby",
+              "Project": "S3-Terraform-Demo",
+              "Type": "Replica"
+            },
+            "tags_all": {
+              "Owner": "Nancy Tcheby",
+              "Project": "S3-Terraform-Demo",
+              "Type": "Replica"
+            },
+            "timeouts": null,
+            "versioning": [
+              {
+                "enabled": true,
+                "mfa_delete": false
+              }
+            ],
+            "website": [],
+            "website_domain": null,
+            "website_endpoint": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy-replica",
+            "region": "us-west-2"
+          },
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxMjAwMDAwMDAwMDAwLCJkZWxldGUiOjM2MDAwMDAwMDAwMDAsInJlYWQiOjEyMDAwMDAwMDAwMDAsInVwZGF0ZSI6MTIwMDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "acceleration_status": "",
+            "acl": null,
+            "arn": "arn:aws:s3:::stack-buck3-nancy",
+            "bucket": "stack-buck3-nancy",
+            "bucket_domain_name": "stack-buck3-nancy.s3.amazonaws.com",
+            "bucket_prefix": "",
+            "bucket_region": "us-east-1",
+            "bucket_regional_domain_name": "stack-buck3-nancy.s3.us-east-1.amazonaws.com",
+            "cors_rule": [],
+            "force_destroy": false,
+            "grant": [
+              {
+                "id": "c6b4916bd57c7c77d48085434a40825f705fe534cec1cc8a0cf695f232376244",
+                "permissions": [
+                  "FULL_CONTROL"
+                ],
+                "type": "CanonicalUser",
+                "uri": ""
+              }
+            ],
+            "hosted_zone_id": "Z3AQBSTGFYJSTF",
+            "id": "stack-buck3-nancy",
+            "lifecycle_rule": [
+              {
+                "abort_incomplete_multipart_upload_days": 7,
+                "enabled": true,
+                "expiration": [
+                  {
+                    "date": "",
+                    "days": 365,
+                    "expired_object_delete_marker": false
+                  }
+                ],
+                "id": "standard-lifecycle",
+                "noncurrent_version_expiration": [
+                  {
+                    "days": 365
+                  }
+                ],
+                "noncurrent_version_transition": [
+                  {
+                    "days": 30,
+                    "storage_class": "GLACIER"
+                  }
+                ],
+                "prefix": "",
+                "tags": {},
+                "transition": [
+                  {
+                    "date": "",
+                    "days": 30,
+                    "storage_class": "STANDARD_IA"
+                  },
+                  {
+                    "date": "",
+                    "days": 90,
+                    "storage_class": "GLACIER"
+                  }
+                ]
+              }
+            ],
+            "logging": [
+              {
+                "target_bucket": "stack-buck3-nancy-logs",
+                "target_prefix": "s3-access-logs/"
+              }
+            ],
+            "object_lock_configuration": [],
+            "object_lock_enabled": false,
+            "policy": "{\"Statement\":[{\"Action\":\"s3:GetObject\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Resource\":\"arn:aws:s3:::stack-buck3-nancy/*\",\"Sid\":\"AllowPublicReadForWebsite\"}],\"Version\":\"2012-10-17\"}",
+            "region": "us-east-1",
+            "replication_configuration": [
+              {
+                "role": "arn:aws:iam::135576900189:role/stack-buck3-nancy-crr-role",
+                "rules": [
+                  {
+                    "delete_marker_replication_status": "Enabled",
+                    "destination": [
+                      {
+                        "access_control_translation": [],
+                        "account_id": "",
+                        "bucket": "arn:aws:s3:::stack-buck3-nancy-replica-01",
+                        "metrics": [],
+                        "replica_kms_key_id": "",
+                        "replication_time": [],
+                        "storage_class": "STANDARD"
+                      }
+                    ],
+                    "filter": [
+                      {
+                        "prefix": null,
+                        "tags": null
+                      }
+                    ],
+                    "id": "crr-all",
+                    "prefix": "",
+                    "priority": 0,
+                    "source_selection_criteria": [],
+                    "status": "Enabled"
+                  }
+                ]
+              }
+            ],
+            "request_payer": "BucketOwner",
+            "server_side_encryption_configuration": [
+              {
+                "rule": [
+                  {
+                    "apply_server_side_encryption_by_default": [
+                      {
+                        "kms_master_key_id": "",
+                        "sse_algorithm": "AES256"
+                      }
+                    ],
+                    "bucket_key_enabled": false
+                  }
+                ]
+              }
+            ],
+            "tags": {
+              "Department": "Cloud Eng Training",
+              "Environment": "Dev",
+              "Owner": "Nancy Tcheby",
+              "Project": "S3-Terraform-Demo"
+            },
+            "tags_all": {
+              "Department": "Cloud Eng Training",
+              "Environment": "Dev",
+              "Owner": "Nancy Tcheby",
+              "Project": "S3-Terraform-Demo"
+            },
+            "timeouts": null,
+            "versioning": [
+              {
+                "enabled": true,
+                "mfa_delete": false
+              }
+            ],
+            "website": [
+              {
+                "error_document": "error.html",
+                "index_document": "index.html",
+                "redirect_all_requests_to": "",
+                "routing_rules": ""
+              }
+            ],
+            "website_domain": "s3-website-us-east-1.amazonaws.com",
+            "website_endpoint": "stack-buck3-nancy.s3-website-us-east-1.amazonaws.com"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy",
+            "region": "us-east-1"
+          },
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxMjAwMDAwMDAwMDAwLCJkZWxldGUiOjM2MDAwMDAwMDAwMDAsInJlYWQiOjEyMDAwMDAwMDAwMDAsInVwZGF0ZSI6MTIwMDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_acl",
+      "name": "logs",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "access_control_policy": [
+              {
+                "grant": [
+                  {
+                    "grantee": [
+                      {
+                        "display_name": "",
+                        "email_address": "",
+                        "id": "",
+                        "type": "Group",
+                        "uri": "http://acs.amazonaws.com/groups/s3/LogDelivery"
+                      }
+                    ],
+                    "permission": "READ_ACP"
+                  },
+                  {
+                    "grantee": [
+                      {
+                        "display_name": "",
+                        "email_address": "",
+                        "id": "",
+                        "type": "Group",
+                        "uri": "http://acs.amazonaws.com/groups/s3/LogDelivery"
+                      }
+                    ],
+                    "permission": "WRITE"
+                  },
+                  {
+                    "grantee": [
+                      {
+                        "display_name": "",
+                        "email_address": "",
+                        "id": "c6b4916bd57c7c77d48085434a40825f705fe534cec1cc8a0cf695f232376244",
+                        "type": "CanonicalUser",
+                        "uri": ""
+                      }
+                    ],
+                    "permission": "FULL_CONTROL"
+                  }
+                ],
+                "owner": [
+                  {
+                    "display_name": "nancytcheby",
+                    "id": "c6b4916bd57c7c77d48085434a40825f705fe534cec1cc8a0cf695f232376244"
+                  }
+                ]
+              }
+            ],
+            "acl": "log-delivery-write",
+            "bucket": "stack-buck3-nancy-logs",
+            "expected_bucket_owner": "",
+            "id": "stack-buck3-nancy-logs,log-delivery-write",
+            "region": "us-east-1"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "acl": "log-delivery-write",
+            "bucket": "stack-buck3-nancy-logs",
+            "expected_bucket_owner": null,
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.logs",
+            "aws_s3_bucket_ownership_controls.logs"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_analytics_configuration",
+      "name": "default",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy",
+            "filter": [],
+            "id": "stack-buck3-nancy:default-analysis",
+            "name": "default-analysis",
+            "region": "us-east-1",
+            "storage_class_analysis": [
+              {
+                "data_export": [
+                  {
+                    "destination": [
+                      {
+                        "s3_bucket_destination": [
+                          {
+                            "bucket_account_id": "",
+                            "bucket_arn": "arn:aws:s3:::stack-buck3-nancy-analytics",
+                            "format": "CSV",
+                            "prefix": "reports/"
+                          }
+                        ]
+                      }
+                    ],
+                    "output_schema_version": "V_1"
+                  }
+                ]
+              }
+            ]
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.analytics_export",
+            "aws_s3_bucket.this"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_lifecycle_configuration",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "bucket": "stack-buck3-nancy",
+            "expected_bucket_owner": "",
+            "id": "stack-buck3-nancy",
+            "region": "us-east-1",
+            "rule": [
+              {
+                "abort_incomplete_multipart_upload": [
+                  {
+                    "days_after_initiation": 7
+                  }
+                ],
+                "expiration": [
+                  {
+                    "date": null,
+                    "days": 365,
+                    "expired_object_delete_marker": false
+                  }
+                ],
+                "filter": [
+                  {
+                    "and": [],
+                    "object_size_greater_than": null,
+                    "object_size_less_than": null,
+                    "prefix": "",
+                    "tag": []
+                  }
+                ],
+                "id": "standard-lifecycle",
+                "noncurrent_version_expiration": [
+                  {
+                    "newer_noncurrent_versions": null,
+                    "noncurrent_days": 365
+                  }
+                ],
+                "noncurrent_version_transition": [
+                  {
+                    "newer_noncurrent_versions": null,
+                    "noncurrent_days": 30,
+                    "storage_class": "GLACIER"
+                  }
+                ],
+                "prefix": "",
+                "status": "Enabled",
+                "transition": [
+                  {
+                    "date": null,
+                    "days": 30,
+                    "storage_class": "STANDARD_IA"
+                  },
+                  {
+                    "date": null,
+                    "days": 90,
+                    "storage_class": "GLACIER"
+                  }
+                ]
+              }
+            ],
+            "timeouts": null,
+            "transition_default_minimum_object_size": "all_storage_classes_128K"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "dependencies": [
+            "aws_s3_bucket.this"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_logging",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy",
+            "expected_bucket_owner": "",
+            "id": "stack-buck3-nancy",
+            "region": "us-east-1",
+            "target_bucket": "stack-buck3-nancy-logs",
+            "target_grant": [],
+            "target_object_key_format": [],
+            "target_prefix": "s3-access-logs/"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy",
+            "expected_bucket_owner": null,
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.logs",
+            "aws_s3_bucket.this"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_notification",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy",
+            "eventbridge": false,
+            "id": "stack-buck3-nancy",
+            "lambda_function": [],
+            "queue": [
+              {
+                "events": [
+                  "s3:ObjectCreated:*",
+                  "s3:ObjectRemoved:*"
+                ],
+                "filter_prefix": "",
+                "filter_suffix": "",
+                "id": "tf-s3-queue-20251021205901357900000001",
+                "queue_arn": "arn:aws:sqs:us-east-1:135576900189:stack-buck3-nancy-s3-events"
+              }
+            ],
+            "region": "us-east-1",
+            "topic": []
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy",
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.this",
+            "aws_sqs_queue.s3_events",
+            "aws_sqs_queue_policy.allow_s3"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_object_lock_configuration",
+      "name": "object_lock_default",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy-olock",
+            "expected_bucket_owner": "",
+            "id": "stack-buck3-nancy-olock",
+            "object_lock_enabled": "Enabled",
+            "region": "us-east-1",
+            "rule": [
+              {
+                "default_retention": [
+                  {
+                    "days": 30,
+                    "mode": "GOVERNANCE",
+                    "years": 0
+                  }
+                ]
+              }
+            ],
+            "token": null
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "token"
+              }
+            ]
+          ],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.object_lock",
+            "aws_s3_bucket_versioning.object_lock"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_ownership_controls",
+      "name": "cloudtrail_logs",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy-ct-logs",
+            "id": "stack-buck3-nancy-ct-logs",
+            "region": "us-east-1",
+            "rule": [
+              {
+                "object_ownership": "BucketOwnerPreferred"
+              }
+            ]
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy-ct-logs",
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.cloudtrail_logs"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_ownership_controls",
+      "name": "logs",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy-logs",
+            "id": "stack-buck3-nancy-logs",
+            "region": "us-east-1",
+            "rule": [
+              {
+                "object_ownership": "BucketOwnerPreferred"
+              }
+            ]
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy-logs",
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.logs"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_ownership_controls",
+      "name": "object_lock",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy-olock",
+            "id": "stack-buck3-nancy-olock",
+            "region": "us-east-1",
+            "rule": [
+              {
+                "object_ownership": "BucketOwnerPreferred"
+              }
+            ]
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy-olock",
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.object_lock"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_ownership_controls",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy",
+            "id": "stack-buck3-nancy",
+            "region": "us-east-1",
+            "rule": [
+              {
+                "object_ownership": "BucketOwnerPreferred"
+              }
+            ]
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy",
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.this"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_policy",
+      "name": "cloudtrail_logs",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy-ct-logs",
+            "id": "stack-buck3-nancy-ct-logs",
+            "policy": "{\"Statement\":[{\"Action\":\"s3:PutObject\",\"Condition\":{\"StringEquals\":{\"s3:x-amz-acl\":\"bucket-owner-full-control\"}},\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cloudtrail.amazonaws.com\"},\"Resource\":\"arn:aws:s3:::stack-buck3-nancy-ct-logs/AWSLogs/135576900189/*\",\"Sid\":\"AWSCloudTrailWrite\"},{\"Action\":\"s3:GetBucketAcl\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cloudtrail.amazonaws.com\"},\"Resource\":\"arn:aws:s3:::stack-buck3-nancy-ct-logs\",\"Sid\":\"AWSCloudTrailAclCheck\"}],\"Version\":\"2012-10-17\"}",
+            "region": "us-east-1"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy-ct-logs",
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.cloudtrail_logs",
+            "aws_s3_bucket_ownership_controls.cloudtrail_logs",
+            "data.aws_caller_identity.current"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_policy",
+      "name": "website_public_read",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy",
+            "id": "stack-buck3-nancy",
+            "policy": "{\"Statement\":[{\"Action\":\"s3:GetObject\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Resource\":\"arn:aws:s3:::stack-buck3-nancy/*\",\"Sid\":\"AllowPublicReadForWebsite\"}],\"Version\":\"2012-10-17\"}",
+            "region": "us-east-1"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy",
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.this"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_public_access_block",
+      "name": "cloudtrail_logs",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "block_public_acls": true,
+            "block_public_policy": true,
+            "bucket": "stack-buck3-nancy-ct-logs",
+            "id": "stack-buck3-nancy-ct-logs",
+            "ignore_public_acls": true,
+            "region": "us-east-1",
+            "restrict_public_buckets": true,
+            "skip_destroy": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy-ct-logs",
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.cloudtrail_logs"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_public_access_block",
+      "name": "logs",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "block_public_acls": true,
+            "block_public_policy": true,
+            "bucket": "stack-buck3-nancy-logs",
+            "id": "stack-buck3-nancy-logs",
+            "ignore_public_acls": true,
+            "region": "us-east-1",
+            "restrict_public_buckets": true,
+            "skip_destroy": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy-logs",
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.logs"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_public_access_block",
+      "name": "object_lock",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "block_public_acls": true,
+            "block_public_policy": true,
+            "bucket": "stack-buck3-nancy-olock",
+            "id": "stack-buck3-nancy-olock",
+            "ignore_public_acls": true,
+            "region": "us-east-1",
+            "restrict_public_buckets": true,
+            "skip_destroy": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy-olock",
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.object_lock"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_public_access_block",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "block_public_acls": true,
+            "block_public_policy": false,
+            "bucket": "stack-buck3-nancy",
+            "id": "stack-buck3-nancy",
+            "ignore_public_acls": true,
+            "region": "us-east-1",
+            "restrict_public_buckets": false,
+            "skip_destroy": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy",
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.this"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_replication_configuration",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy",
+            "id": "stack-buck3-nancy",
+            "region": "us-east-1",
+            "role": "arn:aws:iam::135576900189:role/stack-buck3-nancy-crr-role",
+            "rule": [
+              {
+                "delete_marker_replication": [
+                  {
+                    "status": "Enabled"
+                  }
+                ],
+                "destination": [
+                  {
+                    "access_control_translation": [],
+                    "account": "",
+                    "bucket": "arn:aws:s3:::stack-buck3-nancy-replica-01",
+                    "encryption_configuration": [],
+                    "metrics": [],
+                    "replication_time": [],
+                    "storage_class": "STANDARD"
+                  }
+                ],
+                "existing_object_replication": [],
+                "filter": [
+                  {
+                    "and": null,
+                    "prefix": null,
+                    "tag": null
+                  }
+                ],
+                "id": "crr-all",
+                "prefix": "",
+                "priority": 0,
+                "source_selection_criteria": [],
+                "status": "Enabled"
+              }
+            ],
+            "token": null
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "token"
+              }
+            ]
+          ],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.replication",
+            "aws_s3_bucket.replica",
+            "aws_s3_bucket.this",
+            "aws_s3_bucket_policy.replica_allow_replication",
+            "aws_s3_bucket_versioning.replica",
+            "aws_s3_bucket_versioning.this",
+            "data.aws_iam_policy_document.replication_trust"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_server_side_encryption_configuration",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy",
+            "expected_bucket_owner": "",
+            "id": "stack-buck3-nancy",
+            "region": "us-east-1",
+            "rule": [
+              {
+                "apply_server_side_encryption_by_default": [
+                  {
+                    "kms_master_key_id": "",
+                    "sse_algorithm": "AES256"
+                  }
+                ],
+                "bucket_key_enabled": false
+              }
+            ]
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy",
+            "expected_bucket_owner": null,
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.this"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_versioning",
+      "name": "object_lock",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy-olock",
+            "expected_bucket_owner": "",
+            "id": "stack-buck3-nancy-olock",
+            "mfa": null,
+            "region": "us-east-1",
+            "versioning_configuration": [
+              {
+                "mfa_delete": "Disabled",
+                "status": "Enabled"
+              }
+            ]
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy-olock",
+            "expected_bucket_owner": null,
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.object_lock"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_versioning",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy",
+            "expected_bucket_owner": "",
+            "id": "stack-buck3-nancy",
+            "mfa": null,
+            "region": "us-east-1",
+            "versioning_configuration": [
+              {
+                "mfa_delete": "",
+                "status": "Enabled"
+              }
+            ]
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy",
+            "expected_bucket_owner": null,
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.this"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_s3_bucket_website_configuration",
+      "name": "static",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "bucket": "stack-buck3-nancy",
+            "error_document": [
+              {
+                "key": "error.html"
+              }
+            ],
+            "expected_bucket_owner": "",
+            "id": "stack-buck3-nancy",
+            "index_document": [
+              {
+                "suffix": "index.html"
+              }
+            ],
+            "redirect_all_requests_to": [],
+            "region": "us-east-1",
+            "routing_rule": [],
+            "routing_rules": "",
+            "website_domain": "s3-website-us-east-1.amazonaws.com",
+            "website_endpoint": "stack-buck3-nancy.s3-website-us-east-1.amazonaws.com"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "bucket": "stack-buck3-nancy",
+            "expected_bucket_owner": null,
+            "region": "us-east-1"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_s3_bucket.this"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_sqs_queue",
+      "name": "s3_events",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:sqs:us-east-1:135576900189:stack-buck3-nancy-s3-events",
+            "content_based_deduplication": false,
+            "deduplication_scope": "",
+            "delay_seconds": 0,
+            "fifo_queue": false,
+            "fifo_throughput_limit": "",
+            "id": "https://sqs.us-east-1.amazonaws.com/135576900189/stack-buck3-nancy-s3-events",
+            "kms_data_key_reuse_period_seconds": 300,
+            "kms_master_key_id": "",
+            "max_message_size": 262144,
+            "message_retention_seconds": 86400,
+            "name": "stack-buck3-nancy-s3-events",
+            "name_prefix": "",
+            "policy": "{\"Statement\":[{\"Action\":\"sqs:SendMessage\",\"Condition\":{\"ArnEquals\":{\"aws:SourceArn\":\"arn:aws:s3:::stack-buck3-nancy\"}},\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"s3.amazonaws.com\"},\"Resource\":\"arn:aws:sqs:us-east-1:135576900189:stack-buck3-nancy-s3-events\",\"Sid\":\"AllowS3SendMessage\"}],\"Version\":\"2012-10-17\"}",
+            "receive_wait_time_seconds": 0,
+            "redrive_allow_policy": "",
+            "redrive_policy": "",
+            "region": "us-east-1",
+            "sqs_managed_sse_enabled": true,
+            "tags": {
+              "Owner": "Nancy Tcheby",
+              "Project": "S3-Terraform-Demo"
+            },
+            "tags_all": {
+              "Owner": "Nancy Tcheby",
+              "Project": "S3-Terraform-Demo"
+            },
+            "timeouts": null,
+            "url": "https://sqs.us-east-1.amazonaws.com/135576900189/stack-buck3-nancy-s3-events",
+            "visibility_timeout_seconds": 30
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "region": "us-east-1",
+            "url": "https://sqs.us-east-1.amazonaws.com/135576900189/stack-buck3-nancy-s3-events"
+          },
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAsImRlbGV0ZSI6MTgwMDAwMDAwMDAwLCJ1cGRhdGUiOjE4MDAwMDAwMDAwMH19"
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_sqs_queue_policy",
+      "name": "allow_s3",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "id": "https://sqs.us-east-1.amazonaws.com/135576900189/stack-buck3-nancy-s3-events",
+            "policy": "{\"Statement\":[{\"Action\":\"sqs:SendMessage\",\"Condition\":{\"ArnEquals\":{\"aws:SourceArn\":\"arn:aws:s3:::stack-buck3-nancy\"}},\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"s3.amazonaws.com\"},\"Resource\":\"arn:aws:sqs:us-east-1:135576900189:stack-buck3-nancy-s3-events\",\"Sid\":\"AllowS3SendMessage\"}],\"Version\":\"2012-10-17\"}",
+            "queue_url": "https://sqs.us-east-1.amazonaws.com/135576900189/stack-buck3-nancy-s3-events",
+            "region": "us-east-1"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "135576900189",
+            "queue_url": "https://sqs.us-east-1.amazonaws.com/135576900189/stack-buck3-nancy-s3-events",
+            "region": "us-east-1"
+          },
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "aws_s3_bucket.this",
+            "aws_sqs_queue.s3_events"
+          ]
+        }
+      ]
+    }
+  ],
+  "check_results": [
+    {
+      "object_kind": "var",
+      "config_addr": "var.replica_storage_class",
+      "status": "pass",
+      "objects": [
+        {
+          "object_addr": "var.replica_storage_class",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "object_kind": "var",
+      "config_addr": "var.default_encryption",
+      "status": "pass",
+      "objects": [
+        {
+          "object_addr": "var.default_encryption",
+          "status": "pass"
+        }
+      ]
+    }
+  ]
+}
