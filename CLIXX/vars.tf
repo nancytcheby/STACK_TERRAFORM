@@ -1,0 +1,31 @@
+variable "aws_region" {
+  description = "AWS region where resources will be created"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "engineer_role_arn" {
+  description = "IAM Role ARN in the DEV account that Terraform will assume"
+  type        = string
+}
+
+variable "clixx_db_snapshot_identifier" {
+  description = "Snapshot ID to restore the Clixx database from"
+  type        = string
+}
+
+variable "clixx_db_instance_class" {
+  description = "Instance class for the restored Clixx DB"
+  type        = string
+  default     = "db.t3.micro"
+}
+
+variable "clixx_db_subnet_group_name" {
+  description = "Existing DB subnet group name to use for the Clixx DB"
+  type        = string
+}
+
+variable "clixx_db_security_group_ids" {
+  description = "List of security group IDs for the Clixx DB"
+  type        = list(string)
+}
