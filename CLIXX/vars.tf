@@ -25,11 +25,6 @@ variable "clixx_db_subnet_group_name" {
   type        = string
 }
 
-variable "clixx_vpc_id" {
-  description = "VPC ID where Clixx DB will be created"
-  type        = string
-}
-
 variable "clixx_db_allowed_cidr" {
   description = "CIDR block allowed to connect to the Clixx DB on port 3306"
   type        = string
@@ -42,12 +37,7 @@ variable "clixx_efs_name" {
   default     = "clixx-efs-dev"
 }
 
-variable "clixx_efs_subnet_ids" {
-  description = "List of subnet IDs where EFS mount targets will be created"
-  type        = list(string)
-}
-
-# Target Group variables (Story 3)
+# Target Group variables (Story 4)
 
 variable "clixx_tg_name" {
   description = "Name of the Target Group for the Clixx application"
@@ -72,3 +62,33 @@ variable "clixx_tg_health_check_path" {
   type        = string
   default     = "/"
 }
+
+# Load Balancer variables (Story 5)
+
+variable "clixx_alb_name" {
+  description = "Name of the Application Load Balancer for Clixx in Dev"
+  type        = string
+  default     = "clixx-alb-dev"
+}
+
+variable "clixx_alb_internal" {
+  description = "Whether the ALB is internal (true) or internet-facing (false)"
+  type        = bool
+  default     = false
+}
+
+variable "clixx_vpc_id" {
+  description = "VPC ID where Clixx resources are created"
+  type        = string
+}
+
+variable "clixx_alb_subnet_ids" {
+  description = "Subnet IDs for the ALB (should be at least two public subnets in different AZs)"
+  type        = list(string)
+}
+
+variable "clixx_efs_subnet_ids" {
+  description = "Subnet IDs where EFS mount targets will be created"
+  type        = list(string)
+}
+
