@@ -24,3 +24,16 @@ output "clixx_db_security_group_id" {
   value       = aws_security_group.clixx_db_sg.id
 }
 
+# -----------------------
+# EFS outputs (Story 2)
+# -----------------------
+
+output "clixx_efs_id" {
+  description = "ID of the Clixx EFS file system"
+  value       = aws_efs_file_system.clixx_efs.id
+}
+
+output "clixx_efs_mount_target_ids" {
+  description = "IDs of the EFS mount targets for Clixx"
+  value       = [for mt in aws_efs_mount_target.clixx_efs_mt : mt.id]
+}

@@ -34,3 +34,15 @@ variable "clixx_db_allowed_cidr" {
   description = "CIDR block allowed to connect to the Clixx DB on port 3306"
   type        = string
 }
+
+# EFS variables
+variable "clixx_efs_name" {
+  description = "Name tag for the Clixx EFS file system in Dev"
+  type        = string
+  default     = "clixx-efs-dev"
+}
+
+variable "clixx_efs_subnet_ids" {
+  description = "List of subnet IDs where EFS mount targets will be created"
+  type        = list(string)
+}
