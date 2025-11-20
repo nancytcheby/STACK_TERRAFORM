@@ -104,3 +104,32 @@ variable "clixx_efs_name" {
   type        = string
   default     = "clixx-efs-dev"
 }
+# Load Balancer variables (Story 5)
+
+variable "clixx_alb_name" {
+  description = "Name of the Application Load Balancer for Clixx in Dev"
+  type        = string
+  default     = "clixx-alb-dev"
+}
+
+variable "clixx_alb_internal" {
+  description = "Whether the ALB is internal (true) or internet-facing (false)"
+  type        = bool
+  default     = false
+}
+
+variable "clixx_vpc_id" {
+  description = "VPC ID where Clixx resources are created"
+  type        = string
+}
+
+variable "clixx_alb_subnet_ids" {
+  description = "Subnet IDs for the ALB (should be at least two public subnets in different AZs)"
+  type        = list(string)
+}
+
+variable "clixx_efs_subnet_ids" {
+  description = "Subnet IDs where EFS mount targets will be created"
+  type        = list(string)
+}
+

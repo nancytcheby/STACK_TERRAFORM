@@ -1,6 +1,4 @@
-# -----------------------------------------
 # Story 2: Create EFS for Clixx in Dev
-# -----------------------------------------
 
 # EFS file system
 resource "aws_efs_file_system" "clixx_efs" {
@@ -23,3 +21,4 @@ resource "aws_efs_mount_target" "clixx_efs_mt" {
     aws_security_group.clixx_db_sg.id
   ]
 }
+
