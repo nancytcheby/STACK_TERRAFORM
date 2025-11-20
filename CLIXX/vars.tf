@@ -25,7 +25,12 @@ variable "clixx_db_subnet_group_name" {
   type        = string
 }
 
-variable "clixx_db_security_group_ids" {
-  description = "List of security group IDs for the Clixx DB"
-  type        = list(string)
+variable "clixx_vpc_id" {
+  description = "VPC ID where Clixx DB will be created"
+  type        = string
+}
+
+variable "clixx_db_allowed_cidr" {
+  description = "CIDR block allowed to connect to the Clixx DB on port 3306"
+  type        = string
 }
