@@ -1,0 +1,9 @@
+# Terraform
+.terraform/
+*.tfvars
+terraform.tfstate
+terraform.tfstate.*
+.terraform.lock.hcl
+
+# System files
+.DS_Store
