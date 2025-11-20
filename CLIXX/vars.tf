@@ -46,3 +46,29 @@ variable "clixx_efs_subnet_ids" {
   description = "List of subnet IDs where EFS mount targets will be created"
   type        = list(string)
 }
+
+# Target Group variables (Story 3)
+
+variable "clixx_tg_name" {
+  description = "Name of the Target Group for the Clixx application"
+  type        = string
+  default     = "clixx-tg-dev"
+}
+
+variable "clixx_tg_port" {
+  description = "Port on which the Clixx application listens"
+  type        = number
+  default     = 80
+}
+
+variable "clixx_tg_protocol" {
+  description = "Protocol for the Clixx Target Group"
+  type        = string
+  default     = "HTTP"
+}
+
+variable "clixx_tg_health_check_path" {
+  description = "Health check path for the Clixx Target Group"
+  type        = string
+  default     = "/"
+}

@@ -24,9 +24,7 @@ output "clixx_db_security_group_id" {
   value       = aws_security_group.clixx_db_sg.id
 }
 
-# -----------------------
 # EFS outputs (Story 2)
-# -----------------------
 
 output "clixx_efs_id" {
   description = "ID of the Clixx EFS file system"
@@ -36,4 +34,16 @@ output "clixx_efs_id" {
 output "clixx_efs_mount_target_ids" {
   description = "IDs of the EFS mount targets for Clixx"
   value       = [for mt in aws_efs_mount_target.clixx_efs_mt : mt.id]
+}
+
+# Target Group outputs (Story 3)
+
+output "clixx_target_group_arn" {
+  description = "ARN of the Clixx Target Group"
+  value       = aws_lb_target_group.clixx_tg.arn
+}
+
+output "clixx_target_group_name" {
+  description = "Name of the Clixx Target Group"
+  value       = aws_lb_target_group.clixx_tg.name
 }
