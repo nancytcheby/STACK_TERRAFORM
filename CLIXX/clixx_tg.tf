@@ -6,6 +6,7 @@ resource "aws_lb_target_group" "clixx_tg" {
   protocol = var.clixx_tg_protocol
   vpc_id   = var.clixx_vpc_id
 
+
   target_type = "instance"
 
   health_check {
