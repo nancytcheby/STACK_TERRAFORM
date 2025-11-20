@@ -8,7 +8,7 @@ resource "aws_db_instance" "clixx_db" {
 
   # Network configuration
   db_subnet_group_name   = var.clixx_db_subnet_group_name
-  vpc_security_group_ids = var.clixx_db_security_group_ids
+vpc_security_group_ids = [aws_security_group.clixx_db_sg.id]
 
   # General settings
   apply_immediately  = true
