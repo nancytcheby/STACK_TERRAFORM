@@ -25,44 +25,85 @@ variable "clixx_db_subnet_group_name" {
   type        = string
 }
 
-variable "clixx_db_allowed_cidr" {
-  description = "CIDR block allowed to connect to the Clixx DB on port 3306"
+# ----------------------------------------
+# VPC and Subnet Variables
+# ----------------------------------------
+
+variable "clixx_vpc_id" {
+  description = "VPC ID for Clixx resources in Dev"
   type        = string
 }
 
-# EFS variables
-variable "clixx_efs_name" {
-  description = "Name tag for the Clixx EFS file system in Dev"
-  type        = string
-  default     = "clixx-efs-dev"
+variable "clixx_alb_subnet_ids" {
+  description = "Subnet IDs to attach to the ALB"
+  type        = list(string)
 }
 
-# Target Group variables (Story 4)
+variable "clixx_efs_subnet_ids" {
+  description = "Subnet IDs for EFS mount targets"
+  type        = list(string)
+}
+
+# ----------------------------------------
+# ALB Variables
+# ----------------------------------------
+
+variable "clixx_alb_name" {
+  description = "Name of the Clixx ALB"
+  type        = string
+}
+
+variable "clixx_alb_internal" {
+  description = "Whether ALB is internal"
+  type        = bool
+}
+
+# ----------------------------------------
+# Target Group Variables
+# ----------------------------------------
 
 variable "clixx_tg_name" {
-  description = "Name of the Target Group for the Clixx application"
+  description = "Name of the Clixx target group"
   type        = string
-  default     = "clixx-tg-dev"
 }
 
 variable "clixx_tg_port" {
-  description = "Port on which the Clixx application listens"
+  description = "Port for target group"
   type        = number
-  default     = 80
 }
 
 variable "clixx_tg_protocol" {
-  description = "Protocol for the Clixx Target Group"
+  description = "Protocol for target group"
   type        = string
-  default     = "HTTP"
+}
+
+# ----------------------------------------
+# Key Pair Variable (Story: Key Pair)
+# ----------------------------------------
+
+variable "clixx_key_name" {
+  description = "Name of the SSH key pair for Clixx EC2 instances"
+  type        = string
+  default     = "clixx-key-dev"
 }
 
 variable "clixx_tg_health_check_path" {
-  description = "Health check path for the Clixx Target Group"
+  description = "Path used by the ALB target group health check"
   type        = string
-  default     = "/"
+  default     = "/"     
 }
 
+variable "clixx_db_allowed_cidr" {
+  description = "CIDR block allowed to access the Clixx DB"
+  type        = string
+  default     = "0.0.0.0/0"   # You can restrict this later
+}
+
+variable "clixx_efs_name" {
+  description = "Name of the Clixx EFS filesystem"
+  type        = string
+  default     = "clixx-efs-dev"
+}
 # Load Balancer variables (Story 5)
 
 variable "clixx_alb_name" {

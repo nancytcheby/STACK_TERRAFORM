@@ -7,3 +7,7 @@ terraform.tfstate.*
 
 # System files
 .DS_Store
+
+# SSH keys
+*.pem
+*.key

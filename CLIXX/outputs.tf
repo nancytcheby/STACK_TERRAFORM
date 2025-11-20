@@ -48,6 +48,18 @@ output "clixx_target_group_name" {
   value       = aws_lb_target_group.clixx_tg.name
 }
 
+# Key Pair outputs (Story: Key Pair)
+
+output "clixx_key_pair_name" {
+  description = "Name of the EC2 key pair for Clixx"
+  value       = aws_key_pair.clixx_key.key_name
+}
+
+# Private key PEM (sensitive) - do NOT commit to Git, save locally and keep secure
+output "clixx_key_private_pem" {
+  description = "Private key for the Clixx EC2 key pair (PEM format). Save this to a local .pem file."
+  value       = tls_private_key.clixx_key.private_key_pem
+  sensitive   = true
 # -----------------------
 # Load Balancer outputs (Story 5)
 # -----------------------
