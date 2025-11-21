@@ -36,7 +36,7 @@ output "clixx_efs_mount_target_ids" {
   value       = [for mt in aws_efs_mount_target.clixx_efs_mt : mt.id]
 }
 
-# Target Group outputs (Story 4)
+# Target Group outputs 
 
 output "clixx_target_group_arn" {
   description = "ARN of the Clixx Target Group"
@@ -60,9 +60,9 @@ output "clixx_key_private_pem" {
   description = "Private key for the Clixx EC2 key pair (PEM format). Save this to a local .pem file."
   value       = tls_private_key.clixx_key.private_key_pem
   sensitive   = true
-# -----------------------
-# Load Balancer outputs (Story 5)
-# -----------------------
+}
+
+# Load Balancer outputs
 
 output "clixx_alb_arn" {
   description = "ARN of the Clixx Application Load Balancer"
@@ -72,4 +72,16 @@ output "clixx_alb_arn" {
 output "clixx_alb_dns_name" {
   description = "DNS name of the Clixx ALB to use in Route53 CNAME"
   value       = aws_lb.clixx_alb.dns_name
+}
+
+# Launch Template outputs 
+
+output "clixx_launch_template_id" {
+  description = "ID of the Clixx EC2 Launch Template"
+  value       = aws_launch_template.clixx_lt.id
+}
+
+output "clixx_launch_template_latest_version" {
+  description = "Latest version of the Clixx EC2 Launch Template"
+  value       = aws_launch_template.clixx_lt.latest_version
 }

@@ -30,17 +30,17 @@ variable "clixx_db_subnet_group_name" {
 # ----------------------------------------
 
 variable "clixx_vpc_id" {
-  description = "VPC ID for Clixx resources in Dev"
+  description = "VPC ID where Clixx resources are created"
   type        = string
 }
 
 variable "clixx_alb_subnet_ids" {
-  description = "Subnet IDs to attach to the ALB"
+  description = "Subnet IDs for the ALB (should be at least two public subnets in different AZs)"
   type        = list(string)
 }
 
 variable "clixx_efs_subnet_ids" {
-  description = "Subnet IDs for EFS mount targets"
+  description = "Subnet IDs where EFS mount targets will be created"
   type        = list(string)
 }
 
@@ -49,13 +49,15 @@ variable "clixx_efs_subnet_ids" {
 # ----------------------------------------
 
 variable "clixx_alb_name" {
-  description = "Name of the Clixx ALB"
+  description = "Name of the Application Load Balancer for Clixx in Dev"
   type        = string
+  default     = "clixx-alb-dev"
 }
 
 variable "clixx_alb_internal" {
-  description = "Whether ALB is internal"
+  description = "Whether the ALB is internal (true) or internet-facing (false)"
   type        = bool
+  default     = false
 }
 
 # ----------------------------------------
@@ -77,6 +79,12 @@ variable "clixx_tg_protocol" {
   type        = string
 }
 
+variable "clixx_tg_health_check_path" {
+  description = "Path used by the ALB target group health check"
+  type        = string
+  default     = "/"
+}
+
 # ----------------------------------------
 # Key Pair Variable (Story: Key Pair)
 # ----------------------------------------
@@ -87,16 +95,14 @@ variable "clixx_key_name" {
   default     = "clixx-key-dev"
 }
 
-variable "clixx_tg_health_check_path" {
-  description = "Path used by the ALB target group health check"
-  type        = string
-  default     = "/"     
-}
+# ----------------------------------------
+# Security / EFS extras
+# ----------------------------------------
 
 variable "clixx_db_allowed_cidr" {
   description = "CIDR block allowed to access the Clixx DB"
   type        = string
-  default     = "0.0.0.0/0"   # You can restrict this later
+  default     = "0.0.0.0/0"
 }
 
 variable "clixx_efs_name" {
@@ -104,32 +110,23 @@ variable "clixx_efs_name" {
   type        = string
   default     = "clixx-efs-dev"
 }
-# Load Balancer variables (Story 5)
 
-variable "clixx_alb_name" {
-  description = "Name of the Application Load Balancer for Clixx in Dev"
-  type        = string
-  default     = "clixx-alb-dev"
-}
+# ----------------------------------------
+# EC2 / Launch Template Variables
+# ----------------------------------------
 
-variable "clixx_alb_internal" {
-  description = "Whether the ALB is internal (true) or internet-facing (false)"
-  type        = bool
-  default     = false
-}
-
-variable "clixx_vpc_id" {
-  description = "VPC ID where Clixx resources are created"
+variable "clixx_ami_id" {
+  description = "AMI ID to use for Clixx EC2 instances"
   type        = string
 }
 
-variable "clixx_alb_subnet_ids" {
-  description = "Subnet IDs for the ALB (should be at least two public subnets in different AZs)"
-  type        = list(string)
+variable "clixx_instance_type" {
+  description = "Instance type for Clixx EC2 instances"
+  type        = string
+  default     = "t4g.micro"
 }
 
-variable "clixx_efs_subnet_ids" {
-  description = "Subnet IDs where EFS mount targets will be created"
-  type        = list(string)
+variable "clixx_iam_instance_profile_name" {
+  description = "Name of the existing IAM instance profile for Clixx EC2 instances"
+  type        = string
 }
-
