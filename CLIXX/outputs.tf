@@ -60,8 +60,9 @@ output "clixx_key_private_pem" {
   description = "Private key for the Clixx EC2 key pair (PEM format). Save this to a local .pem file."
   value       = tls_private_key.clixx_key.private_key_pem
   sensitive   = true
+}
 # -----------------------
-# Load Balancer outputs (Story 5)
+# Load Balancer outputs (Story 6)
 # -----------------------
 
 output "clixx_alb_arn" {
@@ -72,4 +73,20 @@ output "clixx_alb_arn" {
 output "clixx_alb_dns_name" {
   description = "DNS name of the Clixx ALB to use in Route53 CNAME"
   value       = aws_lb.clixx_alb.dns_name
+}
+
+# -----------------------
+# Bootstrap outputs (Story 7)
+# -----------------------
+
+output "clixx_bootstrap_user_data_preview" {
+  description = "Rendered bootstrap (user data) script for Clixx Dev"
+  value       = local.clixx_bootstrap_user_data
+  sensitive   = true
+}
+
+output "clixx_bootstrap_user_data_b64" {
+  description = "Base64-encoded user data for use in Launch Template"
+  value       = local.clixx_bootstrap_user_data_b64
+  sensitive   = true
 }
