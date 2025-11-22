@@ -71,11 +71,7 @@ variable "clixx_alb_name" {
 }
 
 variable "clixx_alb_internal" {
-<<<<<<< HEAD
   description = "Whether ALB is internal (true) or internet-facing (false)"
-=======
-  description = "Whether the ALB is internal (true) or internet-facing (false)"
->>>>>>> dev
   type        = bool
   default     = false
 }
@@ -102,11 +98,7 @@ variable "clixx_tg_protocol" {
 variable "clixx_tg_health_check_path" {
   description = "Path used by the ALB target group health check"
   type        = string
-<<<<<<< HEAD
   default     = "/health.php"
-=======
-  default     = "/"
->>>>>>> dev
 }
 
 # ----------------------------------------
@@ -140,7 +132,6 @@ variable "clixx_key_name" {
 }
 
 # ----------------------------------------
-<<<<<<< HEAD
 # Auto Scaling Group (ASG) Variables
 # ----------------------------------------
 
@@ -219,19 +210,19 @@ variable "PARAMETER_STORE_REGION" {
   description = "AWS region where Parameter Store secrets are stored (admin account)"
   type        = string
   default     = "us-east-1"
-=======
-# Security / EFS extras
-# ----------------------------------------
-
-variable "clixx_db_allowed_cidr" {
-  description = "CIDR block allowed to access the Clixx DB"
-  type        = string
-  default     = "0.0.0.0/0"
 }
 
-variable "clixx_efs_name" {
-  description = "Name of the Clixx EFS filesystem"
+# ----------------------------------------
+# Route53 / DNS Variables
+# ----------------------------------------
+
+variable "clixx_env" {
+  description = "Environment name used in DNS (dev, test, uat, prod)"
   type        = string
-  default     = "clixx-efs-dev"
->>>>>>> dev
+}
+
+variable "clixx_base_domain" {
+  description = "Base public DNS domain (hosted zone) for Clixx"
+  type        = string
+  default     = "nancy-stack.com"
 }
