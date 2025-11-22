@@ -46,17 +46,17 @@ variable "clixx_db_password" {
 # ----------------------------------------
 
 variable "clixx_vpc_id" {
-  description = "VPC ID for Clixx resources in Dev"
+  description = "VPC ID where Clixx resources are created"
   type        = string
 }
 
 variable "clixx_alb_subnet_ids" {
-  description = "Subnet IDs to attach to the ALB"
+  description = "Subnet IDs for the ALB (should be at least two public subnets in different AZs)"
   type        = list(string)
 }
 
 variable "clixx_efs_subnet_ids" {
-  description = "Subnet IDs for EFS mount targets"
+  description = "Subnet IDs where EFS mount targets will be created"
   type        = list(string)
 }
 
@@ -71,7 +71,11 @@ variable "clixx_alb_name" {
 }
 
 variable "clixx_alb_internal" {
+<<<<<<< HEAD
   description = "Whether ALB is internal (true) or internet-facing (false)"
+=======
+  description = "Whether the ALB is internal (true) or internet-facing (false)"
+>>>>>>> dev
   type        = bool
   default     = false
 }
@@ -98,7 +102,11 @@ variable "clixx_tg_protocol" {
 variable "clixx_tg_health_check_path" {
   description = "Path used by the ALB target group health check"
   type        = string
+<<<<<<< HEAD
   default     = "/health.php"
+=======
+  default     = "/"
+>>>>>>> dev
 }
 
 # ----------------------------------------
@@ -132,6 +140,7 @@ variable "clixx_key_name" {
 }
 
 # ----------------------------------------
+<<<<<<< HEAD
 # Auto Scaling Group (ASG) Variables
 # ----------------------------------------
 
@@ -210,4 +219,19 @@ variable "PARAMETER_STORE_REGION" {
   description = "AWS region where Parameter Store secrets are stored (admin account)"
   type        = string
   default     = "us-east-1"
+=======
+# Security / EFS extras
+# ----------------------------------------
+
+variable "clixx_db_allowed_cidr" {
+  description = "CIDR block allowed to access the Clixx DB"
+  type        = string
+  default     = "0.0.0.0/0"
+}
+
+variable "clixx_efs_name" {
+  description = "Name of the Clixx EFS filesystem"
+  type        = string
+  default     = "clixx-efs-dev"
+>>>>>>> dev
 }

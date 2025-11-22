@@ -62,7 +62,7 @@ output "clixx_key_private_pem" {
   sensitive   = true
 }
 # -----------------------
-# Load Balancer outputs (Story 5)
+# Load Balancer outputs (Story 6)
 # -----------------------
 
 output "clixx_alb_arn" {
@@ -76,6 +76,7 @@ output "clixx_alb_dns_name" {
 }
 
 # -----------------------
+<<<<<<< HEAD
 # Auto Scaling Group outputs (Story: ASG)
 # -----------------------
 
@@ -93,3 +94,19 @@ output "clixx_asg_desired_capacity" {
   description = "Desired capacity of the Clixx ASG"
   value       = aws_autoscaling_group.clixx_asg.desired_capacity
 }
+=======
+# Bootstrap outputs (Story 7)
+# -----------------------
+
+output "clixx_bootstrap_user_data_preview" {
+  description = "Rendered bootstrap (user data) script for Clixx Dev"
+  value       = local.clixx_bootstrap_user_data
+  sensitive   = true
+}
+
+output "clixx_bootstrap_user_data_b64" {
+  description = "Base64-encoded user data for use in Launch Template"
+  value       = local.clixx_bootstrap_user_data_b64
+  sensitive   = true
+}
+>>>>>>> dev
