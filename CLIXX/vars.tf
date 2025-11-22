@@ -32,7 +32,7 @@ variable "clixx_db_subnet_group_name" {
 variable "clixx_db_username" {
   description = "Database username for the restored database (should match snapshot)"
   type        = string
-  default     = "admin"  # Common default, but should match your snapshot
+  default     = "admin"  
 }
 
 variable "clixx_db_password" {
@@ -225,4 +225,14 @@ variable "clixx_base_domain" {
   description = "Base public DNS domain (hosted zone) for Clixx"
   type        = string
   default     = "nancy-stack.com"
+}
+
+variable "root_domain" {
+  description = "Root hosted zone domain name"
+  type        = string
+}
+
+variable "clixx_subdomain" {
+  description = "Environment subdomain for Clixx (dev/test/uat/prod)"
+  type        = string
 }
