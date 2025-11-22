@@ -76,6 +76,25 @@ output "clixx_alb_dns_name" {
 }
 
 # -----------------------
+<<<<<<< HEAD
+# Auto Scaling Group outputs (Story: ASG)
+# -----------------------
+
+output "clixx_asg_name" {
+  description = "Name of the Clixx Auto Scaling Group"
+  value       = aws_autoscaling_group.clixx_asg.name
+}
+
+output "clixx_asg_arn" {
+  description = "ARN of the Clixx Auto Scaling Group"
+  value       = aws_autoscaling_group.clixx_asg.arn
+}
+
+output "clixx_asg_desired_capacity" {
+  description = "Desired capacity of the Clixx ASG"
+  value       = aws_autoscaling_group.clixx_asg.desired_capacity
+}
+=======
 # Bootstrap outputs (Story 7)
 # -----------------------
 
@@ -90,3 +109,4 @@ output "clixx_bootstrap_user_data_b64" {
   value       = local.clixx_bootstrap_user_data_b64
   sensitive   = true
 }
+>>>>>>> dev

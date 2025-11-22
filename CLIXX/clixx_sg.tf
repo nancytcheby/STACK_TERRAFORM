@@ -1,4 +1,4 @@
-# Security Group for Clixx Application + DB in Dev
+# Security Group for Clixx Application 
 resource "aws_security_group" "clixx_db_sg" {
   name        = "clixx-db-sg-dev"
   description = "Security group for Clixx application and database in Dev"
@@ -60,3 +60,5 @@ resource "aws_vpc_security_group_egress_rule" "clixx_all_egress" {
   cidr_ipv4   = "0.0.0.0/0"
   ip_protocol = "-1"
 }
+
+
