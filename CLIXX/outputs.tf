@@ -1,4 +1,4 @@
-data "aws_caller_identity" "current" {}
+# Data source is defined in datasources.tf
 # Output the current AWS account ID and assumed role ARN
 output "current_account_id" {
   value = data.aws_caller_identity.current.account_id
@@ -11,12 +11,12 @@ output "current_assumed_role_arn" {
 # Output the Clixx DB identifier and endpoint
 output "clixx_db_identifier" {
   description = "Identifier of the restored Clixx database"
-  value       = aws_db_instance.clixx_db.id
+  value       = length(aws_db_instance.clixx_db) > 0 ? aws_db_instance.clixx_db[0].id : null
 }
 
 output "clixx_db_endpoint" {
   description = "Endpoint address of the restored Clixx database"
-  value       = aws_db_instance.clixx_db.address
+  value       = length(aws_db_instance.clixx_db) > 0 ? aws_db_instance.clixx_db[0].address : null
 }
 # Output the security group ID used by the Clixx DB
 output "clixx_db_security_group_id" {
@@ -55,12 +55,7 @@ output "clixx_key_pair_name" {
   value       = aws_key_pair.clixx_key.key_name
 }
 
-# Private key PEM (sensitive) - do NOT commit to Git, save locally and keep secure
-output "clixx_key_private_pem" {
-  description = "Private key for the Clixx EC2 key pair (PEM format). Save this to a local .pem file."
-  value       = tls_private_key.clixx_key.private_key_pem
-  sensitive   = true
-}
+# Private key PEM is managed externally (clixx-key.pem file)
 # -----------------------
 # Load Balancer outputs (Story 6)
 # -----------------------
@@ -76,17 +71,34 @@ output "clixx_alb_dns_name" {
 }
 
 # -----------------------
-# Bootstrap outputs (Story 7)
+# Auto Scaling Group outputs (Story: ASG)
 # -----------------------
 
-output "clixx_bootstrap_user_data_preview" {
-  description = "Rendered bootstrap (user data) script for Clixx Dev"
-  value       = local.clixx_bootstrap_user_data
-  sensitive   = true
+output "clixx_asg_name" {
+  description = "Name of the Clixx Auto Scaling Group"
+  value       = aws_autoscaling_group.clixx_asg.name
 }
+
+output "clixx_asg_arn" {
+  description = "ARN of the Clixx Auto Scaling Group"
+  value       = aws_autoscaling_group.clixx_asg.arn
+}
+
+output "clixx_asg_desired_capacity" {
+  description = "Desired capacity of the Clixx ASG"
+  value       = aws_autoscaling_group.clixx_asg.desired_capacity
+}
+# Bootstrap outputs (Story 7)
 
 output "clixx_bootstrap_user_data_b64" {
   description = "Base64-encoded user data for use in Launch Template"
   value       = local.clixx_bootstrap_user_data_b64
+  sensitive   = true
+}
+
+# SSH Key outputs
+output "clixx_key_private_pem" {
+  description = "Private key PEM content for SSH access to instances"
+  value       = tls_private_key.clixx_key.private_key_pem
   sensitive   = true
 }
