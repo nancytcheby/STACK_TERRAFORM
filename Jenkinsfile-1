@@ -29,32 +29,19 @@ pipeline {
 
         stage('Packer AMI Build') {
             steps {
+                sh """
+                echo "RUNNER: ${params.RUNNER}"
 
-                
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
+                cd images
 
-                    sh """
-                    export PACKER_PLUGIN_PATH=/var/lib/jenkins/.packer.d/plugins
+                # Update AMI name dynamically
+                sed -i "s/ami-stack-[0-9]*/${AMI_ID}/" image.pkr.hcl
 
-                    echo "RUNNER: ${params.RUNNER}"
+                export PACKER_LOG=1
+                export PACKER_LOG_PATH=$WORKSPACE/packer.log
 
-                    cd images
-
-                    # update AMI name
-                    sed -i "s/ami-stack-[0-9]*/${AMI_ID}/" image.pkr.hcl
-
-                    export PACKER_LOG=1
-                    export PACKER_LOG_PATH=$WORKSPACE/packer.log
-
-                    # show AWS credentials exist 
-                    echo "AWS_ACCESS_KEY_ID=\${AWS_ACCESS_KEY_ID}"
-                    echo "AWS_SECRET_ACCESS_KEY length=\${#AWS_SECRET_ACCESS_KEY}"
-
-            
-                    /usr/bin/packer build -force image.pkr.hcl
-                    """
-                }
+                /usr/bin/packer build -force image.pkr.hcl
+                """
             }
         }
 
@@ -82,7 +69,7 @@ pipeline {
             }
         }
 
-        stage('Build Instance and Vulnerability Scan') {
+        stage('Build Instance (Terraform Apply)') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
@@ -94,23 +81,31 @@ pipeline {
             }
         }
 
-        stage('Build Vulnerability Report') {
+        stage('Build Vulnerability Report (Inspector2)') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
 
                     sh """
-                    echo "Starting Inspector2 vulnerability report for AMI: ${AMI_ID}"
+                    cd instances
 
+                    echo "Fetching EC2 Instance ID..."
+                    INSTANCE_ID=\$(terraform output -raw instance_id)
+                    echo "Instance ID = \$INSTANCE_ID"
+
+                    echo "Enabling Inspector2 (if not already enabled)..."
                     aws inspector2 enable --resource-types EC2 --region us-east-1 || true
 
-                    sleep 15
+                    echo "Waiting for Inspector2 activation..."
+                    sleep 20
 
+                    echo "Fetching vulnerability findings for EC2 instance..."
+                    
                     aws inspector2 list-findings \
-                        --filter-criteria '{\"resourceId\":[{\"comparison\":\"EQUALS\",\"value\":\"${AMI_ID}\"}]}' \
-                        --region us-east-1 > $WORKSPACE/inspector-findings.json
+                      --filter-criteria "{\\\"resourceId\\\":[{\\\"comparison\\\":\\\"EQUALS\\\",\\\"value\\\":\\\"\$INSTANCE_ID\\\"}]}" \
+                      --region us-east-1 > $WORKSPACE/inspector-findings.json
 
-                    echo "Vulnerability report saved to inspector-findings.json"
+                    echo "Vulnerability report saved: inspector-findings.json"
                     """
                 }
             }
@@ -121,6 +116,8 @@ pipeline {
 def getTerraformPath() {
     def tfHome = tool name: 'terraform-14', type: 'terraform'
     return tfHome
+}
+
 }
 
 
