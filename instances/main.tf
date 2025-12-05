@@ -92,11 +92,11 @@ resource "aws_security_group" "sg_22_80" {
 
 data "aws_ami" "stack" {
   owners     = ["self"]
-  name_regex = "^"
+  most_recent = true
 
   filter {
     name   = "name"
-    values = ["ami-stack-51"]
+    values = ["stack-ami-*"]
   }
 }
 resource "aws_instance" "application_server" {
