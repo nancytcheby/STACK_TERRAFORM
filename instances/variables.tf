@@ -8,25 +8,11 @@
 # }
 
 variable "environment_tag" {
-  description = "Environment tag"
-  default     = "Learn"
+  default = "Learn"
 }
 
-variable "region"{
-  description = "The region Terraform deploys your instance"
-  default     = "us-east-1"
-}
-
-variable "vpc_id"{
-    default="vpc-0befa9f9ff5d3b888"
-}
-
-variable "subnets" {
-  type = list(string)
-  default=[
-    "subnet-0a029f0722b30551b",
-    "subnet-0f809518c9e33b8d3",
-   ]
+variable "region" {
+  default = "us-east-1"
 }
 
 variable "PATH_TO_PUBLIC_KEY" {
@@ -34,5 +20,5 @@ variable "PATH_TO_PUBLIC_KEY" {
 }
 
 variable "ami_name" {
-  default = "ami-stack-51"
+  default = "ami-stack"
 }

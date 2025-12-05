@@ -50,17 +50,30 @@ provider "aws" {
 #   route_table_id = aws_route_table.rtb_public.id
 # }
 
+# Automatically get the default VPC
+data "aws_vpc" "default" {
+  default = true
+}
+
+# Automatically get all default subnets in the VPC
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+# SSH key pair
 resource "aws_key_pair" "Stack_KP" {
   key_name   = "stackkp"
   public_key = file(var.PATH_TO_PUBLIC_KEY)
 }
 
-
+# Security Group
 resource "aws_security_group" "sg_22_80" {
   name   = "sg_22"
-  vpc_id = var.vpc_id
+  vpc_id = data.aws_vpc.default.id   
 
-  # SSH access from the VPC
   ingress {
     from_port   = 22
     to_port     = 22
@@ -90,8 +103,9 @@ resource "aws_security_group" "sg_22_80" {
   }
 }
 
+# Always use newest AMI created by Jenkins/Packer
 data "aws_ami" "stack" {
-  owners     = ["self"]
+  owners      = ["self"]
   most_recent = true
 
   filter {
@@ -99,19 +113,23 @@ data "aws_ami" "stack" {
     values = ["stack-ami-*"]
   }
 }
+
+# Application EC2 instance
 resource "aws_instance" "application_server" {
   ami                         = data.aws_ami.stack.id
   instance_type               = "t2.micro"
-  subnet_id                   = var.subnets[0]
+  subnet_id                   = data.aws_subnets.default.ids[0]   # ✔ FIXED
   vpc_security_group_ids      = [aws_security_group.sg_22_80.id]
   associate_public_ip_address = true
-  key_name = aws_key_pair.Stack_KP.key_name
+  key_name                    = aws_key_pair.Stack_KP.key_name
 
   tags = {
     Name = "Test_Instance"
   }
 }
 
+# Output public IP
 output "public_ip" {
   value = aws_instance.application_server.public_ip
 }
+
