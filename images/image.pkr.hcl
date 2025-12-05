@@ -14,7 +14,6 @@ variable "component" {
   default = "clixx"
 }
 
-
 variable "aws_accounts" {
   type = list(string)
   # default= ["577701061234","560089993749"]
@@ -23,7 +22,7 @@ variable "aws_accounts" {
 
 variable "ami_regions" {
   type = list(string)
-  default =["us-east-1"]
+  default = ["us-east-1"]
 }
 
 variable "aws_region" {
@@ -31,24 +30,18 @@ variable "aws_region" {
 }
 
 data "amazon-ami" "source_ami" {
-  filters = {
-    name = "${var.aws_source_ami}"
-  }
   most_recent = true
-  owners      = ["336528460023","amazon"]
-  region      = "${var.aws_region}"
+  owners      = ["amazon"]
+
+  filters = {
+    name                = "amzn2-ami-hvm-*-x86_64-gp2"
+    virtualization-type = "hvm"
+    root-device-type    = "ebs"
+  }
+
+  region = var.aws_region
 }
-
-
-
-
-# locals { timestamp = regex_replace(timestamp(), "[- TZ:]", "") }
-
-
-# source blocks are generated from your builders; a source can be referenced in
-# build blocks. A build block runs provisioners and post-processors on a
-# source.
-
+# ------------------------------------------------------------------------------------
 
 source "amazon-ebs" "amazon_ebs" {
   # assume_role {
@@ -60,6 +53,7 @@ source "amazon-ebs" "amazon_ebs" {
   snapshot_users          = "${var.aws_accounts}"
   encrypt_boot            = false
   instance_type           = "${var.aws_instance_type}"
+
   launch_block_device_mappings {
     delete_on_termination = true
     device_name           = "/dev/xvda"
@@ -67,6 +61,7 @@ source "amazon-ebs" "amazon_ebs" {
     volume_size           = 10
     volume_type           = "gp2"
   }
+
   region                  = "${var.aws_region}"
   source_ami              = "${data.amazon-ami.source_ami.id}"
   ssh_pty                 = true
@@ -74,11 +69,11 @@ source "amazon-ebs" "amazon_ebs" {
   ssh_username            = "ec2-user"
 }
 
-
-# a build block invokes sources and runs provisioning steps on them.
 build {
   sources = ["source.amazon-ebs.amazon_ebs"]
+
   provisioner "shell" {
     script = "../scripts/setup.sh"
   }
 }
+

@@ -1,0 +1,99 @@
+pipeline {
+    agent any
+//  parameters {
+//   credentials credentialType: 'com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl', defaultValue: 'AWS_CREDS_AUTOMATION_ACCT', name: 'AWS_AUTOMATION_ACCOUNT_CRED', required: false
+// }
+
+    environment {
+        PATH = "${PATH}:${getTerraformPath()}"
+        AMI_ID="stack-ami-${BUILD_NUMBER}"
+        VERSION = "1.0.${BUILD_NUMBER}"
+    }
+    stages{
+
+         stage('Initial Stage') {
+              steps {
+                script {
+                def userInput = input(id: 'confirm', message: 'Start Pipeline?', parameters: [ [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Start Pipeline', name: 'confirm'] ])
+             }
+           }
+        }
+
+         stage('Packer AMI Build'){
+             steps {
+                 slackSend (color: '#FFFF00', message: "STARTING PACKER IMAGE BUILD: Job '${env.RUNNER} ${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                 sh '''
+                 cd images
+                 sed -i "s/ami-stack-'[0-9]*$'/'${AMI_ID}'/" ./image.pkr.hcl
+                 export PACKER_LOG=1
+                 export PACKER_LOG_PATH=$WORKSPACE/packer.log
+                 /usr/bin/packer build -force image.pkr.hcl
+                 '''
+             }
+          }
+
+        stage('Terraform init'){
+            steps {
+                slackSend (color: '#FFFF00', message: "STARTING TERRAFORM DEPLOYMENT: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                sh """
+                cd instances
+                terraform init -upgrade
+                """
+            }
+        }
+
+        stage('Terraform Plan'){
+            steps {
+                sh """
+                    cd instances
+                    terraform plan -out=tfplan -input=false
+                """
+            }
+        }
+
+        stage('Build Instance and Vulnerability Scan'){
+            steps {
+                slackSend (color: '#FFFF00', message: "STARTING INFRASTRUCTURE BUILD AND VULNERABILITY SCAN: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                sh """
+                cd instances
+                terraform apply -auto-approve
+                """
+            }
+        }
+
+          stage('Run Ansible Playbook'){
+             steps {
+                 sh """
+                 cd instances
+                 ansible -v
+                 """  
+                 slackSend (color: '#FFFF00', message: "ENDING DEPLOYMENT: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")                        
+         }
+         }
+
+        stage('Build Vulnerability Report'){
+            steps {
+                sh """
+                cd instances
+                aws inspector start-assessment-run --assessment-run-name Hardeningrun_'${VERSION}' --assessment-template-arn "arn:aws:inspector:us-east-1:336528460023:target/0-icADPfPR/template/0-vfjqO1E7" --region us-east-1
+                """  
+                slackSend (color: '#FFFF00', message: "ENDING DEPLOYMENT: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")                        
+            }
+        }
+
+    }
+}
+
+ def getTerraformPath(){
+        def tfHome= tool name: 'terraform-14', type: 'terraform'
+        return tfHome
+    }
+
+    def getAnsiblePath(){
+        def AnsibleHome= tool name: 'Ansible', type: 'org.jenkinsci.plugins.ansible.AnsibleInstallation'
+        return AnsibleHome
+    }
+
+def getPackerPath(){
+       def PackerHome= tool name: 'Packer', type: 'biz.neustar.jenkins.plugins.packer.PackerInstallation'
+    }
