@@ -25,20 +25,26 @@ pipeline {
 
         stage('Packer AMI Build') {
             steps {
-                sh """
-                export PACKER_PLUGIN_PATH=/var/lib/jenkins/.packer.d/plugins
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', 
+                                  credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
 
-                cd images
-                echo "Using runner: $RUNNER"
+                    sh """
+                    export PACKER_PLUGIN_PATH=/var/lib/jenkins/.packer.d/plugins
 
-                sed -i "s/ami-stack-[0-9]*/${AMI_ID}/" image.pkr.hcl
-                export PACKER_LOG=1
-                export PACKER_LOG_PATH=$WORKSPACE/packer.log
+                    cd images
+                    echo "Using runner: $RUNNER"
 
-                /usr/bin/packer build -force image.pkr.hcl
-                """
+                    sed -i "s/ami-stack-[0-9]*/${AMI_ID}/" image.pkr.hcl
+
+                    export PACKER_LOG=1
+                    export PACKER_LOG_PATH=$WORKSPACE/packer.log
+
+                    /usr/bin/packer build -force image.pkr.hcl
+                    """
+                }
             }
         }
     }
 }
+
 
