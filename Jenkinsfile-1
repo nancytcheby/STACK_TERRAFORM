@@ -28,21 +28,25 @@ pipeline {
         }
 
         stage('Packer AMI Build') {
-            steps {
-                sh """
-                echo "RUNNER: ${params.RUNNER}"
+    steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                          credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
 
-                cd images
+            sh """
+            echo "RUNNER: ${params.RUNNER}"
 
-                sed -i "s/ami-stack-[0-9]*/${AMI_ID}/" image.pkr.hcl
+            cd images
 
-                export PACKER_LOG=1
-                export PACKER_LOG_PATH=$WORKSPACE/packer.log
+            sed -i "s/ami-stack-[0-9]*/${AMI_ID}/" image.pkr.hcl
 
-                /usr/bin/packer build -force image.pkr.hcl
-                """
-            }
+            export PACKER_LOG=1
+            export PACKER_LOG_PATH=$WORKSPACE/packer.log
+
+            /usr/bin/packer build -force image.pkr.hcl
+            """
         }
+    }
+}
 
         stage('Terraform init') {
             steps {
