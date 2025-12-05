@@ -29,17 +29,32 @@ pipeline {
 
         stage('Packer AMI Build') {
             steps {
-                sh """
-                echo "RUNNER: ${params.RUNNER}"
 
-                cd images
-                sed -i "s/ami-stack-[0-9]*/${AMI_ID}/" image.pkr.hcl
+                
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                                  credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
 
-                export PACKER_LOG=1
-                export PACKER_LOG_PATH=$WORKSPACE/packer.log
+                    sh """
+                    export PACKER_PLUGIN_PATH=/var/lib/jenkins/.packer.d/plugins
 
-                /usr/bin/packer build -force image.pkr.hcl
-                """
+                    echo "RUNNER: ${params.RUNNER}"
+
+                    cd images
+
+                    # update AMI name
+                    sed -i "s/ami-stack-[0-9]*/${AMI_ID}/" image.pkr.hcl
+
+                    export PACKER_LOG=1
+                    export PACKER_LOG_PATH=$WORKSPACE/packer.log
+
+                    # show AWS credentials exist 
+                    echo "AWS_ACCESS_KEY_ID=\${AWS_ACCESS_KEY_ID}"
+                    echo "AWS_SECRET_ACCESS_KEY length=\${#AWS_SECRET_ACCESS_KEY}"
+
+            
+                    /usr/bin/packer build -force image.pkr.hcl
+                    """
+                }
             }
         }
 
@@ -70,7 +85,6 @@ pipeline {
             }
         }
 
-        // -------- INSPECTOR2 VULNERABILITY REPORT --------
         stage('Build Vulnerability Report') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
@@ -99,6 +113,7 @@ def getTerraformPath() {
     def tfHome = tool name: 'terraform-14', type: 'terraform'
     return tfHome
 }
+
 
 
 
