@@ -60,28 +60,37 @@ pipeline {
 
         stage('Terraform init') {
             steps {
-                sh """
-                cd instances
-                terraform init -upgrade
-                """
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                                  credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
+                    sh """
+                    cd instances
+                    terraform init -upgrade
+                    """
+                }
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                sh """
-                cd instances
-                terraform plan -out=tfplan -input=false
-                """
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                                  credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
+                    sh """
+                    cd instances
+                    terraform plan -out=tfplan -input=false
+                    """
+                }
             }
         }
 
         stage('Build Instance and Vulnerability Scan') {
             steps {
-                sh """
-                cd instances
-                terraform apply -auto-approve
-                """
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                                  credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
+                    sh """
+                    cd instances
+                    terraform apply -auto-approve
+                    """
+                }
             }
         }
 
