@@ -7,32 +7,38 @@ pipeline {
 
     environment {
         AMI_ID = "stack-ami-${BUILD_NUMBER}"
+        RUNNER = "${params.RUNNER}"
     }
 
     stages {
 
         stage('Initial Stage') {
             steps {
-                input message: "Start Pipeline, RUNNER = ${params.RUNNER}?",
-                ok: "Proceed?",
-                parameters: [
-                    booleanParam(name: 'confirm', defaultValue: false, description: 'Start Pipeline')
-                ]
+                script {
+                    input(
+                        message: "Start Pipeline? RUNNER = ${params.RUNNER}",
+                        ok: "Proceed"
+                    )
+                }
             }
         }
 
         stage('Packer AMI Build') {
             steps {
-                sh '''
-                    cd images
-                    # Replace old AMI with new AMI_ID
-                    sed -i "s/ami-stack-[0-9]*/${AMI_ID}/" image.pkr.hcl
-                    
-                    export PACKER_LOG=1
-                    export PACKER_LOG_PATH=$WORKSPACE/packer.log
-                    /usr/bin/packer build -force image.pkr.hcl
-                '''
+                sh """
+                export PACKER_PLUGIN_PATH=/var/lib/jenkins/.packer.d/plugins
+
+                cd images
+                echo "Using runner: $RUNNER"
+
+                sed -i "s/ami-stack-[0-9]*/${AMI_ID}/" image.pkr.hcl
+                export PACKER_LOG=1
+                export PACKER_LOG_PATH=$WORKSPACE/packer.log
+
+                /usr/bin/packer build -force image.pkr.hcl
+                """
             }
         }
     }
 }
+
