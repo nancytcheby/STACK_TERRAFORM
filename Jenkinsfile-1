@@ -34,7 +34,6 @@ pipeline {
 
                 cd images
 
-                # Update AMI name dynamically
                 sed -i "s/ami-stack-[0-9]*/${AMI_ID}/" image.pkr.hcl
 
                 export PACKER_LOG=1
@@ -96,16 +95,14 @@ pipeline {
                     echo "Enabling Inspector2 (if not already enabled)..."
                     aws inspector2 enable --resource-types EC2 --region us-east-1 || true
 
-                    echo "Waiting for Inspector2 activation..."
                     sleep 20
 
-                    echo "Fetching vulnerability findings for EC2 instance..."
-                    
+                    echo "Fetching vulnerability findings..."
                     aws inspector2 list-findings \
                       --filter-criteria "{\\\"resourceId\\\":[{\\\"comparison\\\":\\\"EQUALS\\\",\\\"value\\\":\\\"\$INSTANCE_ID\\\"}]}" \
                       --region us-east-1 > $WORKSPACE/inspector-findings.json
 
-                    echo "Vulnerability report saved: inspector-findings.json"
+                    echo "Report saved to inspector-findings.json"
                     """
                 }
             }
@@ -118,7 +115,6 @@ def getTerraformPath() {
     return tfHome
 }
 
-}
 
 
 
