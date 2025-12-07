@@ -31,7 +31,7 @@ pipeline {
     steps {
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                           credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
-
+            slackSend (color: '#FFFF00', message: "STARTING PACKER IMAGE BUILD: Job '${params.RUNNER} ${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")               
             sh """
             echo "RUNNER: ${params.RUNNER}"
 
@@ -52,6 +52,7 @@ pipeline {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
+                    slackSend (color: '#FFFF00', message: "STARTING TERRAFORM INIT: Job '${params.RUNNER} ${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                     sh """
                     cd instances
                     terraform init -upgrade
@@ -64,6 +65,7 @@ pipeline {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
+                    slackSend (color: '#FFFF00', message: "STARTING TERRAFORM PLAN: Job '${params.RUNNER} ${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                     sh """
                     cd instances
                     terraform plan -out=tfplan -input=false
@@ -76,6 +78,7 @@ pipeline {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
+                    slackSend (color: '#FFFF00', message: "STARTING INFRASTRUCTURE BUILD: Job '${params.RUNNER} ${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                     sh """
                     cd instances
                     terraform apply -auto-approve
@@ -108,6 +111,21 @@ pipeline {
 
                     echo "Report saved to inspector-findings.json"
                     """
+                    slackSend (color: '#FFFF00', message: "ENDING DEPLOYMENT: Job '${params.RUNNER} ${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                }
+            }
+        }
+
+        stage('Terraform Destroy') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                                  credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
+                    slackSend (color: '#FF0000', message: "STARTING TERRAFORM DESTROY: Job '${params.RUNNER} ${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                    sh """
+                    cd instances
+                    terraform destroy -auto-approve
+                    """
+                    slackSend (color: '#00FF00', message: "COMPLETED TERRAFORM DESTROY: Job '${params.RUNNER} ${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                 }
             }
         }
