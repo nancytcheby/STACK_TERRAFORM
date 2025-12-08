@@ -6,16 +6,19 @@
 # Data Sources - Dynamic Resource Discovery
 # ----------------------------------------
 
-# Get default VPC (most common approach)
+# Get default VPC (only used if create_custom_vpc = false)
 data "aws_vpc" "clixx_vpc" {
+  count   = var.create_custom_vpc ? 0 : 1
   default = true
 }
 
-# Get all public subnets in the VPC
+# Get all public subnets in the default VPC (only used if create_custom_vpc = false)
 data "aws_subnets" "clixx_public_subnets" {
+  count = var.create_custom_vpc ? 0 : 1
+
   filter {
     name   = "vpc-id"
-    values = [data.aws_vpc.clixx_vpc.id]
+    values = [data.aws_vpc.clixx_vpc[0].id]
   }
   
   filter {
@@ -28,7 +31,7 @@ data "aws_subnets" "clixx_public_subnets" {
 data "aws_security_groups" "existing_sgs" {
   filter {
     name   = "vpc-id"
-    values = [data.aws_vpc.clixx_vpc.id]
+    values = [local.vpc_id]
   }
 }
 
@@ -48,17 +51,10 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
-# Use the created key pair resource instead of data source
-# data "aws_key_pair" "clixx_key" {
-#   key_name           = var.clixx_key_name
-#   include_public_key = true
-# }
-
-# IAM role and instance profile are now created as resources in iam.tf
-
-# Get existing DB subnet group
+# Get existing DB subnet group (only used if create_custom_vpc = false)
 data "aws_db_subnet_group" "clixx_db_subnet_group" {
-  name = var.clixx_db_subnet_group_name
+  count = var.create_custom_vpc ? 0 : 1
+  name  = var.clixx_db_subnet_group_name
 }
 
 # Get availability zones for the region
@@ -74,9 +70,24 @@ data "aws_region" "current" {}
 
 # Get Route53 hosted zone for DNS
 data "aws_route53_zone" "selected_zone" {
-  count = var.root_domain != "" ? 1 : 0
-  name  = var.root_domain
+  count        = var.root_domain != "" ? 1 : 0
+  name         = var.root_domain
   private_zone = false
+}
+
+# Get instances in the ASG (for Inspector scanning)
+data "aws_instances" "clixx_asg_instances" {
+  filter {
+    name   = "tag:aws:autoscaling:groupName"
+    values = [aws_autoscaling_group.clixx_asg.name]
+  }
+  
+  filter {
+    name   = "instance-state-name"
+    values = ["running"]
+  }
+  
+  depends_on = [aws_autoscaling_group.clixx_asg]
 }
 
 # ========================================
@@ -84,7 +95,6 @@ data "aws_route53_zone" "selected_zone" {
 # ========================================
 
 locals {
-  # Standard tags that meet professor requirements
   common_tags = {
     stackTeam   = "stackcloud14"
     OwnerEmail  = "nancytcheby@hotmail.com"
@@ -94,11 +104,16 @@ locals {
     Application = "clixx"
   }
 
-  # Subnet IDs - dynamically discovered from public subnets
-  alb_subnet_ids = data.aws_subnets.clixx_public_subnets.ids
+  # VPC ID - Use custom VPC if created, otherwise use default VPC
+  vpc_id = var.create_custom_vpc ? aws_vpc.clixx_vpc[0].id : var.clixx_vpc_id
 
-  efs_subnet_ids = length(var.clixx_efs_subnet_ids) > 0 ? var.clixx_efs_subnet_ids : local.alb_subnet_ids
+  public_subnet_ids  = var.create_custom_vpc ? aws_subnet.clixx_public_subnet[*].id : var.clixx_alb_subnet_ids
+  private_subnet_ids = var.create_custom_vpc ? aws_subnet.clixx_private_subnet[*].id : var.clixx_efs_subnet_ids
 
-  asg_subnet_ids = length(var.clixx_asg_subnet_ids) > 0 ? var.clixx_asg_subnet_ids : local.alb_subnet_ids
+  db_subnet_group_name = var.create_custom_vpc ? aws_db_subnet_group.clixx_db_subnet_group[0].name : var.clixx_db_subnet_group_name
+
+  efs_subnet_ids = local.private_subnet_ids
+  asg_subnet_ids = local.private_subnet_ids
+  alb_subnet_ids = local.public_subnet_ids
 }
 

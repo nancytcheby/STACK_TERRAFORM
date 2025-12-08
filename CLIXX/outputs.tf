@@ -102,3 +102,26 @@ output "clixx_key_private_pem" {
   value       = tls_private_key.clixx_key.private_key_pem
   sensitive   = true
 }
+
+# Instance IDs for Inspector scanning
+output "clixx_instance_ids" {
+  description = "List of EC2 instance IDs in the ASG"
+  value       = data.aws_instances.clixx_asg_instances.ids
+}
+
+# VPC ID output
+output "clixx_vpc_id" {
+  description = "VPC ID used by Clixx infrastructure"
+  value       = local.vpc_id
+}
+
+# Subnet IDs outputs
+output "clixx_public_subnet_ids" {
+  description = "Public subnet IDs"
+  value       = local.public_subnet_ids
+}
+
+output "clixx_private_subnet_ids" {
+  description = "Private subnet IDs"
+  value       = local.private_subnet_ids
+}

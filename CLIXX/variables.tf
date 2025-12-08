@@ -17,7 +17,7 @@ variable "accounts" {
   description = "Map of environment to AWS account IDs"
   type        = map(string)
   default = {
-    admin = "135576900189"  # Admin account where SSM parameters are stored
+    admin = "135576900189" 
     dev   = "083587468058"
     test  = "279271292861"
     uat   = "818760291841"
@@ -34,13 +34,45 @@ variable "aws_region" {
 variable "engineer_role_arn" {
   description = "IAM Role ARN in the target account that Terraform will assume (dynamically determined)"
   type        = string
-  default     = ""  # Will use local.engineer_role_arn instead
+  default     = ""  
 }
+
+# ----------------------------------------
+# VPC Configuration (NEW)
+# ----------------------------------------
+
+variable "create_custom_vpc" {
+  description = "Whether to create custom VPC (true) or use default VPC (false)"
+  type        = bool
+  default     = true  # Set to false to use default VPC
+}
+
+variable "vpc_cidr" {
+  description = "CIDR block for the custom VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "public_subnet_cidrs" {
+  description = "CIDR blocks for public subnets (2 subnets for HA)"
+  type        = list(string)
+  default     = ["10.0.0.0/24", "10.0.1.0/24"]
+}
+
+variable "private_subnet_cidrs" {
+  description = "CIDR blocks for private subnets (2 subnets for HA)"
+  type        = list(string)
+  default     = ["10.0.2.0/24", "10.0.3.0/24"]
+}
+
+# ----------------------------------------
+# Database Configuration
+# ----------------------------------------
 
 variable "clixx_db_snapshot_identifier" {
   description = "Snapshot ID to restore the Clixx database from (provide via tfvars or environment variable)"
   type        = string
-  default     = ""  # Must be provided via tfvars or env variable
+  default     = "arn:aws:rds:us-east-1:577701061234:snapshot:wordpressdbclixx-ecs-snapshot"  
 }
 
 variable "clixx_db_instance_class" {
@@ -50,7 +82,7 @@ variable "clixx_db_instance_class" {
 }
 
 variable "clixx_db_subnet_group_name" {
-  description = "Existing DB subnet group name to use for the Clixx DB"
+  description = "Existing DB subnet group name to use for the Clixx DB (only used if create_custom_vpc = false)"
   type        = string
   default     = "rds-ec2-db-subnet-group-1"
 }
@@ -72,25 +104,32 @@ variable "clixx_db_password" {
 }
 
 # ----------------------------------------
-# VPC and Subnet Variables
+# VPC and Subnet Variables (Legacy - for default VPC mode)
 # ----------------------------------------
 
 variable "clixx_vpc_id" {
-  description = "VPC ID where Clixx resources are created (will be discovered via data source if not provided)"
+  description = "VPC ID where Clixx resources are created (only used if create_custom_vpc = false)"
   type        = string
-  default     = ""  
+  default     = "vpc-03933c67bfb9249b8" 
 }
 
 variable "clixx_alb_subnet_ids" {
-  description = "Subnet IDs for the ALB (will be discovered via data source if not provided)"
+  description = "Subnet IDs for the ALB (only used if create_custom_vpc = false)"
   type        = list(string)
-  default     = []  # Empty means use data source discovery
+  default     = [
+    "subnet-0c37fbad8b3a6bc36", # us-east-1c
+    "subnet-0664e01d9700d97ec", # us-east-1b
+    "subnet-0c5c62a0c20a0c08d"  # us-east-1e
+  ]
 }
 
 variable "clixx_efs_subnet_ids" {
-  description = "Subnet IDs where EFS mount targets will be created (will be discovered via data source if not provided)"
+  description = "Subnet IDs where EFS mount targets will be created (only used if create_custom_vpc = false)"
   type        = list(string)
-  default     = []  # Empty means use data source discovery
+  default     = [
+    "subnet-0c37fbad8b3a6bc36", # us-east-1c
+    "subnet-0664e01d9700d97ec"  # us-east-1b
+  ]
 }
 
 # ----------------------------------------
@@ -196,20 +235,30 @@ variable "clixx_asg_desired_capacity" {
 }
 
 variable "clixx_asg_subnet_ids" {
-  description = "Subnet IDs where the ASG will launch EC2 instances (will be discovered via data source if not provided)"
+  description = "Subnet IDs where ASG instances launch (only used if create_custom_vpc = false)"
   type        = list(string)
-  default     = []  # Empty means use data source discovery
+  default = [
+    "subnet-0c37fbad8b3a6bc36",
+    "subnet-0664e01d9700d97ec"  
+  ]
 }
 
+
 # ----------------------------------------
-# EC2 Configuration Map (All EC2 properties in one place)
+# EC2 Configuration Map 
 # ----------------------------------------
+
+variable "custom_ami_id" {
+  description = "Custom AMI ID from Packer build (overrides ec2_config.ami_id if provided)"
+  type        = string
+  default     = ""
+}
 
 variable "ec2_config" {
   description = "Map containing all EC2 configuration properties"
   type        = map(any)
   default = {
-    ami_id                    = "ami-0dda28e5df2d25176"
+    ami_id                    = "ami-0dda28e5df2d25176"  # Fallback AMI (ARM64 Amazon Linux 2)
     instance_type            = "t4g.micro"
     key_name                 = "clixx-key-dev"
     iam_role_name            = "EC2-Access-Role"
@@ -222,7 +271,7 @@ variable "ec2_config" {
     
     # Health check settings
     health_check_type         = "ELB"
-    health_check_grace_period = 1200
+    health_check_grace_period = 3600 
     
     # Launch template settings
     enable_detailed_monitoring = true
@@ -281,9 +330,6 @@ variable "admin_ssm_role_arn" {
   default     = "arn:aws:iam::135576900189:role/TerraformSSMRole"
 }
 
-# AWS credentials should be provided via AWS CLI, environment variables, or IAM roles
-# Never include AWS_ACCESS_KEY or AWS_SECRET_KEY in Terraform code
-
 variable "PARAMETER_STORE_REGION" {
   description = "AWS region where Parameter Store secrets are stored (admin account)"
   type        = string
@@ -325,10 +371,16 @@ variable "clixx_subdomain" {
 variable "owner_email" {
   description = "Email address of the resource owner"
   type        = string
-  default     = "nancy@example.com"  # Update with your actual email
+  default     = "nancy@example.com" 
 }
 
-# ----------------------------------------
-# Local Values for Standard Tags
-# ----------------------------------------
-# Note: common_tags and engineer_role_arn are defined in datasources.tf
+
+variable "database_config" {
+  description = "Map of DB settings for Clixx"
+  type        = map(string)
+  default = {
+    snapshot_identifier = "arn:aws:rds:us-east-1:577701061234:snapshot:wordpressdbclixx-ecs-snapshot"
+    instance_class      = "db.t3.micro"
+    username            = "wordpressuser"
+  }
+}

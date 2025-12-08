@@ -47,9 +47,6 @@ resource "aws_iam_policy" "clixx_cross_account_ssm_policy" {
   }
 }
 
-# Note: IAM role and instance profile are now created as resources in iam.tf
-# The policy attachments are also handled in iam.tf, so removing duplicates from here
-
 # ========================================
 # SSH Key Pair - Creating new key pair
 # ========================================
@@ -117,7 +114,7 @@ resource "random_id" "db_suffix" {
   byte_length = 4
   keepers = {
     timestamp = timestamp()
-    snapshot_identifier = var.clixx_db_snapshot_identifier
+    snapshot_identifier = var.clixx_db_snapshot_identifier 
   }
 }
 
@@ -127,12 +124,12 @@ resource "aws_db_instance" "clixx_db" {
   identifier           = try(format("clixx-db-%s-%s", var.env, random_id.db_suffix.hex), "clixx-db-dev-${random_id.db_suffix.hex}")
   snapshot_identifier  = try(var.clixx_db_snapshot_identifier, null)
   instance_class       = try(var.clixx_db_instance_class, "db.t3.micro")
-  db_subnet_group_name = try(var.clixx_db_subnet_group_name, null)
+  db_subnet_group_name = local.db_subnet_group_name
 
   vpc_security_group_ids = [aws_security_group.clixx_db_sg.id]
 
-  username = try(var.clixx_db_username, "admin")
-  password = try(var.clixx_db_password, null)
+  username = try(var.clixx_db_username)
+  password = try(var.clixx_db_password)
 
   backup_retention_period = try(7, 0)
   backup_window           = try("03:00-04:00", null)
@@ -178,7 +175,7 @@ resource "aws_ssm_parameter" "clixx_db_host" {
   provider  = aws.admin
   name      = "/database/host"
   type      = "String"
-  value     = aws_db_instance.clixx_db[0].address
+  value     = length(aws_db_instance.clixx_db) > 0 ? aws_db_instance.clixx_db[0].address : "placeholder"
   overwrite = true
   
   tags = local.common_tags
@@ -200,7 +197,7 @@ resource "aws_ssm_parameter" "clixx_db_user" {
   provider  = aws.admin
   name      = "/database/user"
   type      = "String"
-  value     = var.clixx_db_username
+  value     = var.database_config["username"]
   overwrite = true
   
   tags = local.common_tags
@@ -211,7 +208,8 @@ resource "aws_ssm_parameter" "clixx_db_password" {
   provider  = aws.admin
   name      = "/database/password"
   type      = "SecureString"
-  value     = var.clixx_db_password
+#   value     = var.clixx_db_password
+    value     = var.clixx_db_password
   overwrite = true
   
   tags = local.common_tags
@@ -236,7 +234,7 @@ resource "aws_ssm_parameter" "clixx_wp_config" {
     db_name = aws_ssm_parameter.clixx_db_name.value
     db_user = var.clixx_db_username
     db_pass = var.clixx_db_password
-    db_host = aws_db_instance.clixx_db[0].address
+    db_host = length(aws_db_instance.clixx_db) > 0 ? aws_db_instance.clixx_db[0].address : ""
   })
   overwrite = true
   
@@ -251,7 +249,7 @@ locals {
   # bootstrap script - essential WordPress setup 
   clixx_bootstrap_user_data = templatefile("${path.module}/clixx_bootstrap_minimal.sh", {
     aws_region = var.aws_region
-    db_host    = aws_db_instance.clixx_db[0].address
+    db_host    = length(aws_db_instance.clixx_db) > 0 ? aws_db_instance.clixx_db[0].address : ""
     db_name    = aws_ssm_parameter.clixx_db_name.value
     db_user    = var.clixx_db_username
     db_pass    = var.clixx_db_password
@@ -268,7 +266,8 @@ locals {
 
 resource "aws_launch_template" "clixx_lt" {
   name_prefix   = try(format("clixx-lt-%s-", var.env), "clixx-lt-dev-")
-  image_id      = try(var.ec2_config.ami_id, "ami-0dda28e5df2d25176")
+  # Use custom AMI if provided, otherwise use ec2_config ami_id
+  image_id      = var.custom_ami_id != "" ? var.custom_ami_id : try(var.ec2_config.ami_id, "ami-0dda28e5df2d25176")
   instance_type = try(var.ec2_config.instance_type, "t4g.micro")
 
   key_name = aws_key_pair.clixx_key.key_name
@@ -319,17 +318,17 @@ resource "aws_lb_target_group" "clixx_tg" {
   name     = try(var.clixx_tg_name, format("clixx-tg-%s", var.env))
   port     = try(var.clixx_tg_port, 80)
   protocol = try(var.clixx_tg_protocol, "HTTP")
-  vpc_id   = var.clixx_vpc_id
+  vpc_id   = local.vpc_id
 
   target_type = "instance"
 
   health_check {
     path                = try(var.clixx_tg_health_check_path, "/health.php")
     matcher             = "200-399"
-    healthy_threshold   = 3
-    unhealthy_threshold = 5
-    timeout             = 10
-    interval            = 60
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+    timeout             = 5
+    interval            = 30
     protocol            = try(var.clixx_tg_protocol, "HTTP")
     port                = "traffic-port"
   }
@@ -353,7 +352,7 @@ resource "aws_lb" "clixx_alb" {
   load_balancer_type = "application"
 
   security_groups = [aws_security_group.clixx_db_sg.id]
-  subnets         = length(var.clixx_alb_subnet_ids) > 0 ? var.clixx_alb_subnet_ids : local.alb_subnet_ids
+  subnets = local.alb_subnet_ids
 
   enable_deletion_protection = try(var.env == "prod" ? true : false, false)
 

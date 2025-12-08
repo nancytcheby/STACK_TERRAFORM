@@ -2,7 +2,7 @@
 resource "aws_security_group" "clixx_db_sg" {
   name_prefix = "clixx-sg-${var.env}-"
   description = "Security group for Clixx application and database in ${try(var.env, "dev")}"
-  vpc_id      = try(var.clixx_vpc_id, "")
+  vpc_id      = local.vpc_id
 
   # Dynamic ingress rules - HTTP, SSH, MySQL/Aurora, NFS
   ingress {
