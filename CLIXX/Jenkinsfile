@@ -42,7 +42,6 @@ pipeline {
 
                     cd CLIXX/images
 
-                    # Update AMI name in Packer template
                     sed -i "s/ami_name.*=.*/ami_name = \\"${AMI_ID}\\"/" image.pkr.hcl
 
                     export PACKER_LOG=1
@@ -50,7 +49,6 @@ pipeline {
 
                     /usr/bin/packer build -force image.pkr.hcl
 
-                    # Extract the AMI ID from Packer output
                     BUILT_AMI_ID=\$(grep -oP 'ami-[a-z0-9]+' manifest.json | tail -1)
                     echo "Built AMI ID: \$BUILT_AMI_ID"
                     echo \$BUILT_AMI_ID > ../../ami_id.txt
@@ -82,13 +80,11 @@ pipeline {
                 ]) {
                     slackSend (color: '#FFFF00', message: "STARTING TERRAFORM PLAN: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                     sh """
-                    # Read the AMI ID from Packer build
                     AMI_ID_FROM_PACKER=\$(cat ami_id.txt)
                     echo "Using AMI: \$AMI_ID_FROM_PACKER"
 
                     cd CLIXX/terraform
                     
-                    # Pass the AMI ID and DB password as Terraform variables
                     terraform plan \
                         -var="custom_ami_id=\$AMI_ID_FROM_PACKER" \
                         -var="env=${params.ENV}" \
@@ -153,7 +149,6 @@ pipeline {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
-
                     sh """
                     cd CLIXX/terraform
 
@@ -173,7 +168,6 @@ pipeline {
 
                     sleep 30
 
-                    # Generate report for each instance
                     for INSTANCE_ID in \$INSTANCE_IDS; do
                         echo "Fetching vulnerability findings for \$INSTANCE_ID..."
                         aws inspector2 list-findings \
@@ -214,10 +208,10 @@ pipeline {
 
     post {
         success {
-            slackSend (color: '#00FF00', message: "✅ PIPELINE SUCCESSFUL: '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
+            slackSend (color: '#00FF00', message: "PIPELINE SUCCESSFUL: '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
         }
         failure {
-            slackSend (color: '#FF0000', message: "❌ PIPELINE FAILED: '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
+            slackSend (color: '#FF0000', message: "PIPELINE FAILED: '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
         }
         always {
             echo "Pipeline completed for ${params.RUNNER}"
@@ -228,5 +222,4 @@ pipeline {
 def getTerraformPath() {
     def tfHome = tool name: 'terraform-14', type: 'terraform'
     return tfHome
-}
 }
