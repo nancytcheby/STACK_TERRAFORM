@@ -1,0 +1,34 @@
+# Terraform
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/terraform.tfstate.*
+**/.terraform.tfstate.lock.info
+**/errored.tfstate
+**/*.tfvars
+**/*.tfplan
+**/crash.log
+
+# Packer
+**/packer_cache/
+**/packer.log
+**/manifest.json
+CLIXX-AMI-BUILD/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+ami_id.txt
+
+# Temp/Test
+VPC/
