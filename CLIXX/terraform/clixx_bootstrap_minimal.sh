@@ -15,8 +15,8 @@ EFS_ID="${efs_id}"
 LB_DNS="${lb_dns}"
 
 # Install packages
-dnf update -y
-dnf install -y httpd php php-mysqlnd php-fpm amazon-efs-utils git mariadb105
+yum update -y
+yum install -y httpd php php-mysqlnd php-fpm amazon-efs-utils git mariadb105
 
 # Start services
 systemctl enable httpd php-fpm
