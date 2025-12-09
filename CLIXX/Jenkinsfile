@@ -206,17 +206,17 @@ pipeline {
         }
     }
 
-    post {
-        success {
+    // post {
+        // success {
             // slackSend (color: '#00FF00', message: "PIPELINE SUCCESSFUL: '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
-        }
-        failure {
+        // }
+        // failure {
             // slackSend (color: '#FF0000', message: "PIPELINE FAILED: '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
-        }
-        always {
-            echo "Pipeline completed for ${params.RUNNER}"
-        }
-    }
+        //}
+        // always {
+        //     echo "Pipeline completed for ${params.RUNNER}"
+        // }
+    //}
 }
 
 def getTerraformPath() {
