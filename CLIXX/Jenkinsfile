@@ -35,7 +35,7 @@ pipeline {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
-                    slackSend (color: '#FFFF00', message: "STARTING PACKER IMAGE BUILD: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")               
+                    // slackSend (color: '#FFFF00', message: "STARTING PACKER IMAGE BUILD: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")               
                     sh """
                     echo "RUNNER: ${params.RUNNER}"
                     echo "Building AMI: ${AMI_ID}"
@@ -53,7 +53,7 @@ pipeline {
                     echo "Built AMI ID: \$BUILT_AMI_ID"
                     echo \$BUILT_AMI_ID > ../../ami_id.txt
                     """
-                    slackSend (color: '#00FF00', message: "COMPLETED PACKER BUILD: AMI = ${AMI_ID}")
+                    // slackSend (color: '#00FF00', message: "COMPLETED PACKER BUILD: AMI = ${AMI_ID}")
                 }
             }
         }
@@ -62,7 +62,7 @@ pipeline {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
-                    slackSend (color: '#FFFF00', message: "STARTING TERRAFORM INIT: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                    // slackSend (color: '#FFFF00', message: "STARTING TERRAFORM INIT: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                     sh """
                     cd CLIXX/terraform
                     terraform init -upgrade
@@ -78,7 +78,7 @@ pipeline {
                      credentialsId: 'AWS_CREDS_AUTOMATION_ACCT'],
                     string(credentialsId: 'CLIXX_DB_PASSWORD', variable: 'DB_PASS')
                 ]) {
-                    slackSend (color: '#FFFF00', message: "STARTING TERRAFORM PLAN: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                    // slackSend (color: '#FFFF00', message: "STARTING TERRAFORM PLAN: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                     sh """
                     AMI_ID_FROM_PACKER=\$(cat ami_id.txt)
                     echo "Using AMI: \$AMI_ID_FROM_PACKER"
@@ -100,12 +100,12 @@ pipeline {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
-                    slackSend (color: '#FFFF00', message: "STARTING INFRASTRUCTURE BUILD: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                    // slackSend (color: '#FFFF00', message: "STARTING INFRASTRUCTURE BUILD: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                     sh """
                     cd CLIXX/terraform
                     terraform apply -auto-approve tfplan
                     """
-                    slackSend (color: '#00FF00', message: "INFRASTRUCTURE DEPLOYED: Check outputs for URLs")
+                    // slackSend (color: '#00FF00', message: "INFRASTRUCTURE DEPLOYED: Check outputs for URLs")
                 }
             }
         }
@@ -176,7 +176,7 @@ pipeline {
                         echo "Report saved to inspector-findings-\$INSTANCE_ID.json"
                     done
                     """
-                    slackSend (color: '#FFFF00', message: "VULNERABILITY SCAN COMPLETED: Check workspace for reports")
+                    //slackSend (color: '#FFFF00', message: "VULNERABILITY SCAN COMPLETED: Check workspace for reports")
                 }
             }
         }
@@ -195,12 +195,12 @@ pipeline {
                 }
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
-                    slackSend (color: '#FF0000', message: "STARTING TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                    // slackSend (color: '#FF0000', message: "STARTING TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                     sh """
                     cd CLIXX/terraform
                     terraform destroy -auto-approve
                     """
-                    slackSend (color: '#00FF00', message: "COMPLETED TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
+                    // slackSend (color: '#00FF00', message: "COMPLETED TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
                 }
             }
         }
@@ -208,10 +208,10 @@ pipeline {
 
     post {
         success {
-            slackSend (color: '#00FF00', message: "PIPELINE SUCCESSFUL: '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
+            // slackSend (color: '#00FF00', message: "PIPELINE SUCCESSFUL: '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
         }
         failure {
-            slackSend (color: '#FF0000', message: "PIPELINE FAILED: '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
+            // slackSend (color: '#FF0000', message: "PIPELINE FAILED: '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
         }
         always {
             echo "Pipeline completed for ${params.RUNNER}"
