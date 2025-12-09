@@ -75,8 +75,11 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'AWS_CREDS_AUTOMATION_ACCT'],
+                    string(credentialsId: 'CLIXX_DB_PASSWORD', variable: 'DB_PASS')
+                ]) {
                     slackSend (color: '#FFFF00', message: "STARTING TERRAFORM PLAN: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                     sh """
                     # Read the AMI ID from Packer build
@@ -85,10 +88,11 @@ pipeline {
 
                     cd CLIXX/terraform
                     
-                    # Pass the AMI ID as a Terraform variable
+                    # Pass the AMI ID and DB password as Terraform variables
                     terraform plan \
                         -var="custom_ami_id=\$AMI_ID_FROM_PACKER" \
                         -var="env=${params.ENV}" \
+                        -var="clixx_db_password=\$DB_PASS" \
                         -out=tfplan \
                         -input=false
                     """
@@ -126,7 +130,7 @@ pipeline {
                     
                     echo ""
                     echo "Database Endpoint:"
-                    terraform output -raw clixx_db_endpoint
+                    terraform output -raw clixx_db_endpoint || echo "N/A"
                     
                     echo ""
                     echo "EFS ID:"
@@ -191,7 +195,7 @@ pipeline {
                 script {
                     input(
                         id: 'confirm-destroy',
-                        message: " WARNING: About to DESTROY all infrastructure. Continue?",
+                        message: "WARNING: About to DESTROY all infrastructure. Continue?",
                         ok: "Yes, Destroy Everything"
                     )
                 }
@@ -224,4 +228,5 @@ pipeline {
 def getTerraformPath() {
     def tfHome = tool name: 'terraform-14', type: 'terraform'
     return tfHome
+}
 }
