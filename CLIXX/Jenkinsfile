@@ -40,7 +40,7 @@ pipeline {
                     echo "RUNNER: ${params.RUNNER}"
                     echo "Building AMI: ${AMI_ID}"
 
-                    cd images
+                    cd CLIXX/images
 
                     # Update AMI name in Packer template
                     sed -i "s/ami_name.*=.*/ami_name = \\"${AMI_ID}\\"/" image.pkr.hcl
@@ -53,7 +53,7 @@ pipeline {
                     # Extract the AMI ID from Packer output
                     BUILT_AMI_ID=\$(grep -oP 'ami-[a-z0-9]+' manifest.json | tail -1)
                     echo "Built AMI ID: \$BUILT_AMI_ID"
-                    echo \$BUILT_AMI_ID > ../ami_id.txt
+                    echo \$BUILT_AMI_ID > ../../ami_id.txt
                     """
                     slackSend (color: '#00FF00', message: "COMPLETED PACKER BUILD: AMI = ${AMI_ID}")
                 }
@@ -66,7 +66,7 @@ pipeline {
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
                     slackSend (color: '#FFFF00', message: "STARTING TERRAFORM INIT: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                     sh """
-                    cd terraform
+                    cd CLIXX/terraform
                     terraform init -upgrade
                     """
                 }
@@ -83,11 +83,11 @@ pipeline {
                     AMI_ID_FROM_PACKER=\$(cat ami_id.txt)
                     echo "Using AMI: \$AMI_ID_FROM_PACKER"
 
-                    cd terraform
+                    cd CLIXX/terraform
                     
                     # Pass the AMI ID as a Terraform variable
                     terraform plan \
-                        -var="ec2_config={ami_id=\\"\$AMI_ID_FROM_PACKER\\",instance_type=\\"t4g.micro\\",key_name=\\"clixx-key-${params.ENV}\\",iam_role_name=\\"EC2-Access-Role\\",asg_name=\\"clixx-asg-${params.ENV}\\",asg_min_size=1,asg_max_size=1,asg_desired_capacity=1,health_check_type=\\"ELB\\",health_check_grace_period=3600,enable_detailed_monitoring=true,ebs_optimized=false}" \
+                        -var="custom_ami_id=\$AMI_ID_FROM_PACKER" \
                         -var="env=${params.ENV}" \
                         -out=tfplan \
                         -input=false
@@ -102,7 +102,7 @@ pipeline {
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
                     slackSend (color: '#FFFF00', message: "STARTING INFRASTRUCTURE BUILD: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                     sh """
-                    cd terraform
+                    cd CLIXX/terraform
                     terraform apply -auto-approve tfplan
                     """
                     slackSend (color: '#00FF00', message: "INFRASTRUCTURE DEPLOYED: Check outputs for URLs")
@@ -115,7 +115,7 @@ pipeline {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
                     sh """
-                    cd terraform
+                    cd CLIXX/terraform
 
                     echo "========================================="
                     echo "INFRASTRUCTURE OUTPUTS"
@@ -151,7 +151,7 @@ pipeline {
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
 
                     sh """
-                    cd terraform
+                    cd CLIXX/terraform
 
                     echo "Fetching ASG instance IDs..."
                     ASG_NAME=\$(terraform output -raw clixx_asg_name)
@@ -191,7 +191,7 @@ pipeline {
                 script {
                     input(
                         id: 'confirm-destroy',
-                        message: "⚠️ WARNING: About to DESTROY all infrastructure. Continue?",
+                        message: " WARNING: About to DESTROY all infrastructure. Continue?",
                         ok: "Yes, Destroy Everything"
                     )
                 }
@@ -199,7 +199,7 @@ pipeline {
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
                     slackSend (color: '#FF0000', message: "STARTING TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                     sh """
-                    cd terraform
+                    cd CLIXX/terraform
                     terraform destroy -auto-approve
                     """
                     slackSend (color: '#00FF00', message: "COMPLETED TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
