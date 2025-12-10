@@ -92,7 +92,7 @@ output "clixx_asg_desired_capacity" {
 
 output "clixx_bootstrap_user_data_b64" {
   description = "Base64-encoded user data for use in Launch Template"
-  value       = locals.clixx_bootstrap_user_data_b64
+  value       = local.clixx_bootstrap_user_data_b64
   sensitive   = true
 }
 

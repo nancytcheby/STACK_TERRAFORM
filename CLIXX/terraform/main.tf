@@ -248,7 +248,7 @@ resource "aws_ssm_parameter" "clixx_wp_config" {
 locals {
   clixx_bootstrap_user_data = templatefile("${path.module}/clixx_bootstrap.sh", {
     efs_id                  = aws_efs_file_system.clixx_efs.id
-    db_host                 = aws_db_instance.clixx_db.address
+    db_host                 = aws_db_instance.clixx_db[0].address
     db_name                 = var.clixx_db_name
     db_username             = var.clixx_db_username
     db_password_ssm_name    = aws_ssm_parameter.clixx_db_password.name
@@ -259,8 +259,8 @@ locals {
   })
   
   clixx_bootstrap_user_data_b64 = base64encode(clixx_bootstrap_user_data)
-
 }
+
 
 # ========================================
 # Launch Template
