@@ -181,30 +181,34 @@ pipeline {
             }
         }
 
-        stage('Terraform Destroy') {
-            when {
-                expression { params.SKIP_DESTROY == false }
-            }
-            steps {
-                script {
-                    input(
-                        id: 'confirm-destroy',
-                        message: "WARNING: About to DESTROY all infrastructure. Continue?",
-                        ok: "Yes, Destroy Everything"
-                    )
-                }
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
-                    // slackSend (color: '#FF0000', message: "STARTING TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-                    sh """
-                    cd CLIXX/terraform
-                    terraform destroy -auto-approve
-                    """
-                    // slackSend (color: '#00FF00', message: "COMPLETED TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
-                }
-            }
+     stage('Terraform Destroy') {
+    when {
+        expression { params.SKIP_DESTROY == false }
+    }
+    steps {
+        script {
+            input(
+                id: 'confirm-destroy',
+                message: "WARNING: About to DESTROY all infrastructure. Continue?",
+                ok: "Yes, Destroy Everything"
+            )
+        }
+        withCredentials([
+            [$class: 'AmazonWebServicesCredentialsBinding',
+             credentialsId: 'AWS_CREDS_AUTOMATION_ACCT'],
+            string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASS')
+        ]) {
+            // slackSend (color: '#FF0000', message: "STARTING TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+            sh """
+            cd CLIXX/terraform
+            terraform destroy -auto-approve \
+                -var=env=${params.ENV} \
+                -var=clixx_db_password=\${DB_PASS}
+            """
+            // slackSend (color: '#00FF00', message: "COMPLETED TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
         }
     }
+}
 
     // post {
         // success {
