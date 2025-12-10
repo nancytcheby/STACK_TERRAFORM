@@ -274,7 +274,7 @@ resource "aws_launch_template" "clixx_lt" {
 
   key_name = aws_key_pair.clixx_key.key_name
 
-  user_data = locals.clixx_bootstrap_user_data_b64
+  user_data = local.clixx_bootstrap_user_data_b64
 
   vpc_security_group_ids = [aws_security_group.clixx_db_sg.id]
 

@@ -384,3 +384,15 @@ variable "database_config" {
     username            = "wordpressuser"
   }
 }
+
+variable "clixx_db_name" {
+  description = "Database name for CliXX"
+  type        = string
+  default     = "clixx_db"
+}
+
+variable "domain_name" {
+  description = "Domain name for CliXX application"
+  type        = string
+  default     = "nancy-stack.com"
+}
