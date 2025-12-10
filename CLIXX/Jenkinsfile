@@ -208,7 +208,8 @@ pipeline {
             // slackSend (color: '#00FF00', message: "COMPLETED TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
         }
     }
-}  
+}
+    }  
 
     // post {
         // success {
