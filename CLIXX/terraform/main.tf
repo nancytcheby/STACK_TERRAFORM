@@ -260,7 +260,7 @@ locals {
     wp_config_check_script  = file("${path.module}/wp_config_check.sh")
   })
   
-  clixx_bootstrap_user_data_b64 = base64encode(clixx_bootstrap_user_data)
+  clixx_bootstrap_user_data_b64 = base64encode(local.clixx_bootstrap_user_data)
 }
 
 
