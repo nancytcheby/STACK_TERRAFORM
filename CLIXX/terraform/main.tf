@@ -257,7 +257,6 @@ locals {
     domain_name             = var.domain_name
     env                     = var.env
     lb_dns                  = aws_lb.clixx_alb.dns_name
-    wp_config_check_script  = file("${path.module}/wp_config_check.sh")
   })
   
   clixx_bootstrap_user_data_b64 = base64encode(local.clixx_bootstrap_user_data)

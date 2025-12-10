@@ -249,31 +249,32 @@ if (isset(\$_SERVER['HTTP_HOST'])) {\\
 }" /var/www/html/wp-config.php
 
   # ================================
-  # Deploy wp_config_check.sh script and setup cron
-  # ================================
-  echo "Deploying wp_config_check.sh script..."
-  
-  # Create the wp_config_check.sh script
-  cat > /var/www/html/wp_config_check.sh << 'EOF'
-${wp_config_check_script}
-EOF
+# Download and setup wp_config_check.sh script
+# ================================
+echo "Downloading wp_config_check.sh from GitHub..."
 
-  # Make script executable
-  sudo chmod +x /var/www/html/wp_config_check.sh
-  sudo chown apache:apache /var/www/html/wp_config_check.sh
+# Download the script from GitHub
+curl -o /var/www/html/wp_config_check.sh \
+  https://raw.githubusercontent.com/nancytcheby/STACK_TERRAFORM/Clixx-dev/CLIXX/terraform/wp_config_check.sh
 
-  # Create log file with proper permissions
-  sudo touch /var/log/wp_config_check.log
-  sudo chown apache:apache /var/log/wp_config_check.log
+# Make script executable
+sudo chmod +x /var/www/html/wp_config_check.sh
+sudo chown apache:apache /var/www/html/wp_config_check.sh
 
-  # Set up cron job to run script every 5 minutes
-  echo "Setting up cron job for wp_config_check.sh..."
-  
-  # Add cron job for apache user (since script needs access to /var/www/html)
-  (sudo crontab -u apache -l 2>/dev/null || echo "") | grep -v wp_config_check.sh > /tmp/apache_cron
-  echo "*/5 * * * * /var/www/html/wp_config_check.sh >> /var/log/wp_config_check.log 2>&1" >> /tmp/apache_cron
-  sudo crontab -u apache /tmp/apache_cron
-  rm /tmp/apache_cron
+# Create log file with proper permissions
+sudo touch /var/log/wp_config_check.log
+sudo chown apache:apache /var/log/wp_config_check.log
+
+# Set up cron job to run script every 5 minutes
+echo "Setting up cron job for wp_config_check.sh..."
+
+# Add cron job for apache user (since script needs access to /var/www/html)
+(sudo crontab -u apache -l 2>/dev/null || echo "") | grep -v wp_config_check.sh > /tmp/apache_cron
+echo "*/5 * * * * /var/www/html/wp_config_check.sh >> /var/log/wp_config_check.log 2>&1" >> /tmp/apache_cron
+sudo crontab -u apache /tmp/apache_cron
+rm /tmp/apache_cron
+
+echo "wp_config_check.sh deployed and cron job configured!"
   
   # Run the script once immediately to test
   echo "Running wp_config_check.sh for the first time..."
