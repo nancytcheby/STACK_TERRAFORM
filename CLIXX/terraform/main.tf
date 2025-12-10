@@ -246,8 +246,8 @@ resource "aws_ssm_parameter" "clixx_wp_config" {
 # ========================================
 
 locals {
-  # bootstrap script - essential WordPress setup 
-  clixx_bootstrap_user_data = templatefile("${path.module}/clixx_bootstrap_minimal.sh", {
+  # bootstrap script
+  clixx_bootstrap_user_data = templatefile("${path.module}/clixx_bootstrap.sh", {
     aws_region = var.aws_region
     db_host    = length(aws_db_instance.clixx_db) > 0 ? aws_db_instance.clixx_db[0].address : ""
     db_name    = aws_ssm_parameter.clixx_db_name.value
