@@ -246,18 +246,17 @@ resource "aws_ssm_parameter" "clixx_wp_config" {
 # ========================================
 
 locals {
-  # bootstrap script
+  # bootstrap script - essential WordPress setup 
   clixx_bootstrap_user_data = templatefile("${path.module}/clixx_bootstrap.sh", {
-    aws_region = var.aws_region
-    db_host    = length(aws_db_instance.clixx_db) > 0 ? aws_db_instance.clixx_db[0].address : ""
-    db_name    = aws_ssm_parameter.clixx_db_name.value
-    db_user    = var.clixx_db_username
-    db_pass    = var.clixx_db_password
-    efs_id     = aws_efs_file_system.clixx_efs.dns_name
-    lb_dns     = aws_lb.clixx_alb.dns_name
+    aws_region             = var.aws_region
+    db_host                = length(aws_db_instance.clixx_db) > 0 ? aws_db_instance.clixx_db[0].address : ""
+    db_name                = aws_ssm_parameter.clixx_db_name.value
+    db_user                = var.clixx_db_username
+    db_pass                = var.clixx_db_password
+    efs_id                 = aws_efs_file_system.clixx_efs.dns_name
+    lb_dns                 = aws_lb.clixx_alb.dns_name
+    wp_config_check_script = file("${path.module}/wp_config_check.sh") 
   })
-
-  clixx_bootstrap_user_data_b64 = base64encode(local.clixx_bootstrap_user_data)
 }
 
 # ========================================
@@ -272,7 +271,7 @@ resource "aws_launch_template" "clixx_lt" {
 
   key_name = aws_key_pair.clixx_key.key_name
 
-  user_data = local.clixx_bootstrap_user_data_b64
+  user_data = locals.clixx_bootstrap_user_data_b64
 
   vpc_security_group_ids = [aws_security_group.clixx_db_sg.id]
 
