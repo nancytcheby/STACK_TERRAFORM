@@ -388,7 +388,7 @@ variable "database_config" {
 variable "clixx_db_name" {
   description = "Database name for CliXX"
   type        = string
-  default     = "clixx_db"
+  default     = "wordpressdb"
 }
 
 variable "domain_name" {
