@@ -251,11 +251,12 @@ locals {
     db_host                 = aws_db_instance.clixx_db[0].address
     db_name                 = var.clixx_db_name
     db_user                 = var.clixx_db_username
-    db_pass                 = var.clixx_db_password           
-    db_password_ssm_name    = aws_ssm_parameter.clixx_db_password.name 
+    db_pass                 = var.clixx_db_password
+    db_password_ssm_name    = aws_ssm_parameter.clixx_db_password.name
     aws_region              = var.aws_region
     domain_name             = var.domain_name
     env                     = var.env
+    lb_dns                  = aws_lb.clixx_alb.dns_name
     wp_config_check_script  = file("${path.module}/wp_config_check.sh")
   })
   
