@@ -76,7 +76,7 @@ pipeline {
                 withCredentials([
                     [$class: 'AmazonWebServicesCredentialsBinding',
                      credentialsId: 'AWS_CREDS_AUTOMATION_ACCT'],
-                    string(credentialsId: 'CLIXX_DB_PASSWORD', variable: 'DB_PASS')
+                    entialsIstring(credd: 'CLIXX_DB_PASSWORD', variable: 'DB_PASS')
                 ]) {
                     // slackSend (color: '#FFFF00', message: "STARTING TERRAFORM PLAN: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                     sh """
@@ -196,7 +196,7 @@ pipeline {
         withCredentials([
             [$class: 'AmazonWebServicesCredentialsBinding',
              credentialsId: 'AWS_CREDS_AUTOMATION_ACCT'],
-            string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASS')
+            string(credentialsId: 'CLIXX_DB_PASSWORD', variable: 'DB_PASS')
         ]) {
             // slackSend (color: '#FF0000', message: "STARTING TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
             sh """
