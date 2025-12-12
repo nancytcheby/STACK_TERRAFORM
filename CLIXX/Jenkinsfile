@@ -32,6 +32,9 @@ pipeline {
         }
 
         stage('Packer AMI Build') {
+            when {
+                expression { params.SKIP_DESTROY == true }
+            }
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
@@ -72,6 +75,9 @@ pipeline {
         }
 
         stage('Terraform Plan') {
+            when {
+                expression { params.SKIP_DESTROY == true }
+            }
             steps {
                 withCredentials([
                     [$class: 'AmazonWebServicesCredentialsBinding',
@@ -97,6 +103,9 @@ pipeline {
         }
 
         stage('Build Infrastructure (Terraform Apply)') {
+            when {
+                expression { params.SKIP_DESTROY == true }
+            }
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
@@ -111,6 +120,9 @@ pipeline {
         }
 
         stage('Get Infrastructure Outputs') {
+            when {
+                expression { params.SKIP_DESTROY == true }
+            }
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
@@ -144,7 +156,7 @@ pipeline {
 
         stage('Build Vulnerability Report (Inspector2)') {
             when {
-                expression { params.ENV == 'dev' || params.ENV == 'test' }
+                expression { params.SKIP_DESTROY == true && (params.ENV == 'dev' || params.ENV == 'test') }
             }
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
