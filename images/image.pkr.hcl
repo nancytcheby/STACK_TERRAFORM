@@ -35,7 +35,6 @@ data "amazon-ami" "source_ami" {
   filters = {
     name                = var.aws_source_ami
   }
-  most_recent
   region = var.aws_region
 }
 # ------------------------------------------------------------------------------------
@@ -74,3 +73,11 @@ build {
   }
 }
 
+packer {
+  required_plugins {
+    amazon = {
+      source = "github.com/hashicorp/amazon"
+      version = "~> 1"
+    }
+  }
+}
