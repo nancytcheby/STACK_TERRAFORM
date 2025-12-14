@@ -1,11 +1,8 @@
 pipeline {
     agent any
-    pipeline {
-    agent any
 
     parameters {
         string(name: 'RUNNER', defaultValue: 'Nancy', description: 'Runner name')
-    }
     }
 //  parameters {
 //   credentials credentialType: 'com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl', defaultValue: 'AWS_CREDS_AUTOMATION_ACCT', name: 'AWS_AUTOMATION_ACCOUNT_CRED', required: false
