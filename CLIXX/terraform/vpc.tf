@@ -1,10 +1,8 @@
 ########################
-# Create  VPC
+# Create VPC
 ########################
 
 resource "aws_vpc" "clixx_vpc" {
-  count = var.create_custom_vpc ? 1 : 0
-
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
@@ -15,36 +13,36 @@ resource "aws_vpc" "clixx_vpc" {
 }
 
 ########################
-# Create Public Subnets (2)
+# Create Public Subnets
 ########################
 
 resource "aws_subnet" "clixx_public_subnet" {
-  count = var.create_custom_vpc ? 2 : 0
+  for_each = var.public_subnets
 
-  vpc_id                  = aws_vpc.clixx_vpc[0].id
-  cidr_block              = var.public_subnet_cidrs[count.index]
-  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  vpc_id                  = aws_vpc.clixx_vpc.id
+  cidr_block              = each.value
+  availability_zone       = data.aws_availability_zones.available.names[index(keys(var.public_subnets), each.key)]
   map_public_ip_on_launch = true
 
   tags = merge(local.common_tags, {
-    Name = format("clixx-public-subnet-%d-%s", count.index + 1, var.env)
+    Name = format("clixx-%s-%s", each.key, var.env)
     Type = "Public"
   })
 }
 
 ########################
-# Create Private Subnets (2)
+# Create Private Subnets
 ########################
 
 resource "aws_subnet" "clixx_private_subnet" {
-  count = var.create_custom_vpc ? 2 : 0
+  for_each = var.private_subnets
 
-  vpc_id            = aws_vpc.clixx_vpc[0].id
-  cidr_block        = var.private_subnet_cidrs[count.index]
-  availability_zone = data.aws_availability_zones.available.names[count.index]
+  vpc_id            = aws_vpc.clixx_vpc.id
+  cidr_block        = each.value
+  availability_zone = data.aws_availability_zones.available.names[index(keys(var.private_subnets), each.key)]
 
   tags = merge(local.common_tags, {
-    Name = format("clixx-private-subnet-%d-%s", count.index + 1, var.env)
+    Name = format("clixx-%s-%s", each.key, var.env)
     Type = "Private"
   })
 }
@@ -54,9 +52,7 @@ resource "aws_subnet" "clixx_private_subnet" {
 ########################
 
 resource "aws_internet_gateway" "clixx_igw" {
-  count = var.create_custom_vpc ? 1 : 0
-
-  vpc_id = aws_vpc.clixx_vpc[0].id
+  vpc_id = aws_vpc.clixx_vpc.id
 
   tags = merge(local.common_tags, {
     Name = format("clixx-igw-%s", var.env)
@@ -68,8 +64,6 @@ resource "aws_internet_gateway" "clixx_igw" {
 ########################
 
 resource "aws_eip" "clixx_nat_eip" {
-  count = var.create_custom_vpc ? 1 : 0
-
   domain = "vpc"
 
   tags = merge(local.common_tags, {
@@ -80,14 +74,12 @@ resource "aws_eip" "clixx_nat_eip" {
 }
 
 ########################
-# NAT Gateway (in first public subnet)
+# NAT Gateway
 ########################
 
 resource "aws_nat_gateway" "clixx_nat" {
-  count = var.create_custom_vpc ? 1 : 0
-
-  allocation_id = aws_eip.clixx_nat_eip[0].id
-  subnet_id     = aws_subnet.clixx_public_subnet[0].id
+  allocation_id = aws_eip.clixx_nat_eip.id
+  subnet_id     = aws_subnet.clixx_public_subnet["public-1"].id
 
   tags = merge(local.common_tags, {
     Name = format("clixx-nat-gateway-%s", var.env)
@@ -101,13 +93,11 @@ resource "aws_nat_gateway" "clixx_nat" {
 ########################
 
 resource "aws_route_table" "clixx_public_rt" {
-  count = var.create_custom_vpc ? 1 : 0
-
-  vpc_id = aws_vpc.clixx_vpc[0].id
+  vpc_id = aws_vpc.clixx_vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.clixx_igw[0].id
+    gateway_id = aws_internet_gateway.clixx_igw.id
   }
 
   tags = merge(local.common_tags, {
@@ -116,12 +106,11 @@ resource "aws_route_table" "clixx_public_rt" {
   })
 }
 
-# Associate public subnets with public route table
 resource "aws_route_table_association" "clixx_public_rta" {
-  count = var.create_custom_vpc ? 2 : 0
+  for_each = aws_subnet.clixx_public_subnet
 
-  subnet_id      = aws_subnet.clixx_public_subnet[count.index].id
-  route_table_id = aws_route_table.clixx_public_rt[0].id
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.clixx_public_rt.id
 }
 
 ########################
@@ -129,13 +118,11 @@ resource "aws_route_table_association" "clixx_public_rta" {
 ########################
 
 resource "aws_route_table" "clixx_private_rt" {
-  count = var.create_custom_vpc ? 1 : 0
-
-  vpc_id = aws_vpc.clixx_vpc[0].id
+  vpc_id = aws_vpc.clixx_vpc.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.clixx_nat[0].id
+    nat_gateway_id = aws_nat_gateway.clixx_nat.id
   }
 
   tags = merge(local.common_tags, {
@@ -144,23 +131,20 @@ resource "aws_route_table" "clixx_private_rt" {
   })
 }
 
-# Associate private subnets with private route table
 resource "aws_route_table_association" "clixx_private_rta" {
-  count = var.create_custom_vpc ? 2 : 0
+  for_each = aws_subnet.clixx_private_subnet
 
-  subnet_id      = aws_subnet.clixx_private_subnet[count.index].id
-  route_table_id = aws_route_table.clixx_private_rt[0].id
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.clixx_private_rt.id
 }
 
 ########################
-# DB Subnet Group for RDS
+# DB Subnet Group
 ########################
 
 resource "aws_db_subnet_group" "clixx_db_subnet_group" {
-  count = var.create_custom_vpc ? 1 : 0
-
   name       = format("clixx-db-subnet-group-%s", var.env)
-  subnet_ids = aws_subnet.clixx_private_subnet[*].id
+  subnet_ids = [for subnet in aws_subnet.clixx_private_subnet : subnet.id]
 
   tags = merge(local.common_tags, {
     Name = format("clixx-db-subnet-group-%s", var.env)
@@ -172,12 +156,9 @@ resource "aws_db_subnet_group" "clixx_db_subnet_group" {
 ########################
 
 resource "aws_network_acl" "clixx_public_nacl" {
-  count = var.create_custom_vpc ? 1 : 0
+  vpc_id     = aws_vpc.clixx_vpc.id
+  subnet_ids = [for subnet in aws_subnet.clixx_public_subnet : subnet.id]
 
-  vpc_id     = aws_vpc.clixx_vpc[0].id
-  subnet_ids = aws_subnet.clixx_public_subnet[*].id
-
-  # Allow HTTP inbound
   ingress {
     protocol   = "tcp"
     rule_no    = 100
@@ -187,7 +168,6 @@ resource "aws_network_acl" "clixx_public_nacl" {
     to_port    = 80
   }
 
-  # Allow HTTPS inbound
   ingress {
     protocol   = "tcp"
     rule_no    = 110
@@ -197,7 +177,6 @@ resource "aws_network_acl" "clixx_public_nacl" {
     to_port    = 443
   }
 
-  # Allow ephemeral ports inbound (for return traffic)
   ingress {
     protocol   = "tcp"
     rule_no    = 120
@@ -207,7 +186,6 @@ resource "aws_network_acl" "clixx_public_nacl" {
     to_port    = 65535
   }
 
-  # Allow SSH from anywhere (consider restricting this in production)
   ingress {
     protocol   = "tcp"
     rule_no    = 130
@@ -217,7 +195,6 @@ resource "aws_network_acl" "clixx_public_nacl" {
     to_port    = 22
   }
 
-  # Allow all outbound traffic
   egress {
     protocol   = "-1"
     rule_no    = 100

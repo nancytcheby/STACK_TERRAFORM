@@ -1,13 +1,3 @@
-# Data source is defined in datasources.tf
-# Output the current AWS account ID and assumed role ARN
-output "current_account_id" {
-  value = data.aws_caller_identity.current.account_id
-}
-
-output "current_assumed_role_arn" {
-  value = data.aws_caller_identity.current.arn
-}
-
 # Output the Clixx DB identifier and endpoint
 output "clixx_db_identifier" {
   description = "Identifier of the restored Clixx database"

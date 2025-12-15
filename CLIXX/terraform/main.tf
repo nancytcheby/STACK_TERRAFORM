@@ -59,11 +59,11 @@ resource "tls_private_key" "clixx_key" {
 
 # Create AWS key pair using the generated public key
 resource "aws_key_pair" "clixx_key" {
-  key_name   = var.clixx_key_name
+  key_name   = "clixx-key-${var.env}"
   public_key = tls_private_key.clixx_key.public_key_openssh
 
   tags = merge(local.common_tags, {
-    Name = var.clixx_key_name
+    Name = "clixx-key-${var.env}"
   })
 }
 
@@ -74,86 +74,61 @@ resource "aws_key_pair" "clixx_key" {
 # ========================================
 
 resource "aws_efs_file_system" "clixx_efs" {
-  creation_token = try(format("clixx-efs-%s", var.env), var.clixx_efs_name, "clixx-efs-dev")
-
-  performance_mode                = try("generalPurpose", "generalPurpose")
-  throughput_mode                 = try("provisioned", "bursting")
-  provisioned_throughput_in_mibps = try(100, null)
-
-  encrypted = true
+  creation_token   = "clixx-efs-${var.env}"
+  performance_mode = "generalPurpose"
+  throughput_mode  = "bursting"
+  encrypted        = true
 
   tags = merge(local.common_tags, {
-    Name = try(var.clixx_efs_name, "clixx-efs-${var.env}")
+    Name = "clixx-efs-${var.env}"
   })
-
-  lifecycle {
-    create_before_destroy = true
-    prevent_destroy       = false
-  }
 }
 
-# EFS Mount Targets
 resource "aws_efs_mount_target" "clixx_efs_mt" {
-  count          = length(local.efs_subnet_ids)
-  file_system_id = aws_efs_file_system.clixx_efs.id
-  subnet_id      = local.efs_subnet_ids[count.index]
-
+  count           = length(local.efs_subnet_ids)
+  file_system_id  = aws_efs_file_system.clixx_efs.id
+  subnet_id       = local.efs_subnet_ids[count.index]
   security_groups = [aws_security_group.clixx_db_sg.id]
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 # ========================================
 # RDS Database
 # ========================================
 
-# Random suffix for DB identifier to avoid conflicts
 resource "random_id" "db_suffix" {
   byte_length = 4
   keepers = {
-    timestamp = timestamp()
-    snapshot_identifier = var.clixx_db_snapshot_identifier 
+    snapshot_identifier = var.database_config["snapshot_identifier"]
   }
 }
 
 resource "aws_db_instance" "clixx_db" {
-  count = var.clixx_db_snapshot_identifier != "" ? 1 : 0
+  count = var.database_config["snapshot_identifier"] != "" ? 1 : 0
 
-  identifier           = try(format("clixx-db-%s-%s", var.env, random_id.db_suffix.hex), "clixx-db-dev-${random_id.db_suffix.hex}")
-  snapshot_identifier  = try(var.clixx_db_snapshot_identifier, null)
-  instance_class       = try(var.clixx_db_instance_class, "db.t3.micro")
+  identifier           = "clixx-db-${var.env}-${random_id.db_suffix.hex}"
+  snapshot_identifier  = var.database_config["snapshot_identifier"]
+  instance_class       = var.database_config["instance_class"]
   db_subnet_group_name = local.db_subnet_group_name
-
   vpc_security_group_ids = [aws_security_group.clixx_db_sg.id]
+  username             = var.database_config["username"]
 
-  username = try(var.clixx_db_username)
-  password = try(var.clixx_db_password)
+  backup_retention_period = 7
+  backup_window           = "03:00-04:00"
+  maintenance_window      = "sun:04:00-sun:05:00"
 
-  backup_retention_period = try(7, 0)
-  backup_window           = try("03:00-04:00", null)
-  maintenance_window      = try("sun:04:00-sun:05:00", null)
-
-  skip_final_snapshot       = try(var.env == "prod" ? false : true, true)
-  final_snapshot_identifier = try(var.env == "prod" ? format("clixx-db-%s-final-snapshot-%s", var.env, formatdate("YYYY-MM-DD-hhmm", timestamp())) : null, null)
-
-  deletion_protection = try(var.env == "prod" ? true : false, false)
+  skip_final_snapshot       = var.env == "prod" ? false : true
+  final_snapshot_identifier = var.env == "prod" ? "clixx-db-${var.env}-final-snapshot" : null
+  deletion_protection       = var.env == "prod" ? true : false
 
   tags = merge(local.common_tags, {
-    Name = try(format("clixx-db-%s", var.env), "clixx-db-dev")
+    Name = "clixx-db-${var.env}"
   })
 
   lifecycle {
-    create_before_destroy = true
-    ignore_changes = [
-      password,
-      final_snapshot_identifier
-    ]
+    ignore_changes = [password, final_snapshot_identifier]
   }
-
-  depends_on = [aws_security_group.clixx_db_sg]
 }
+
 
 # ========================================
 # SSM Parameters (Admin Account)
@@ -203,18 +178,6 @@ resource "aws_ssm_parameter" "clixx_db_user" {
   tags = local.common_tags
 }
 
-# Database password 
-resource "aws_ssm_parameter" "clixx_db_password" {
-  provider  = aws.admin
-  name      = "/database/password"
-  type      = "SecureString"
-#   value     = var.clixx_db_password
-    value     = var.clixx_db_password
-  overwrite = true
-  
-  tags = local.common_tags
-}
-
 # EFS File System ID
 resource "aws_ssm_parameter" "clixx_efs_id" {
   provider  = aws.admin
@@ -226,37 +189,20 @@ resource "aws_ssm_parameter" "clixx_efs_id" {
   tags = local.common_tags
 }
 
-# WordPress Configuration Content (created in dev account)
-resource "aws_ssm_parameter" "clixx_wp_config" {
-  name      = "/clixx/wp-config-content"
-  type      = "SecureString"
-  value = templatefile("${path.module}/wp-config-template.php", {
-    db_name = aws_ssm_parameter.clixx_db_name.value
-    db_user = var.clixx_db_username
-    db_pass = var.clixx_db_password
-    db_host = length(aws_db_instance.clixx_db) > 0 ? aws_db_instance.clixx_db[0].address : ""
-  })
-  overwrite = true
-  
-  tags = local.common_tags
-}
-
 # ========================================
 # Bootstrap Configuration
 # ========================================
 
 locals {
-  clixx_bootstrap_user_data = templatefile("${path.module}/clixx_bootstrap.sh", {
-    efs_id                  = aws_efs_file_system.clixx_efs.id
-    db_host                 = aws_db_instance.clixx_db[0].address
-    db_name                 = var.clixx_db_name
-    db_user                 = var.clixx_db_username
-    db_pass                 = var.clixx_db_password
-    db_password_ssm_name    = aws_ssm_parameter.clixx_db_password.name
-    aws_region              = var.aws_region
-    domain_name             = var.domain_name
-    env                     = var.env
-    lb_dns                  = aws_lb.clixx_alb.dns_name
+  clixx_bootstrap_user_data = templatefile("${path.module}/../images/scripts/clixx_bootstrap.sh", {
+    efs_id      = aws_efs_file_system.clixx_efs.id
+    db_host     = aws_db_instance.clixx_db[0].address
+    db_name     = var.database_config["db_name"]
+    db_user     = var.database_config["username"]
+    aws_region  = var.aws_region
+    domain_name = var.root_domain
+    env         = var.env
+    lb_dns      = aws_lb.clixx_alb.dns_name
   })
   
   clixx_bootstrap_user_data_b64 = base64encode(local.clixx_bootstrap_user_data)
@@ -268,15 +214,12 @@ locals {
 # ========================================
 
 resource "aws_launch_template" "clixx_lt" {
-  name_prefix   = try(format("clixx-lt-%s-", var.env), "clixx-lt-dev-")
-  # Use custom AMI if provided, otherwise use ec2_config ami_id
-  image_id      = var.custom_ami_id != "" ? var.custom_ami_id : try(var.ec2_config.ami_id, "ami-0dda28e5df2d25176")
-  instance_type = try(var.ec2_config.instance_type, "t4g.micro")
+  name_prefix   = "clixx-lt-${var.env}-"
+  image_id      = data.aws_ami.amazon_linux.id
+  instance_type = var.instance_type
 
-  key_name = aws_key_pair.clixx_key.key_name
-
-  user_data = local.clixx_bootstrap_user_data_b64
-
+  key_name               = aws_key_pair.clixx_key.key_name
+  user_data              = local.clixx_bootstrap_user_data_b64
   vpc_security_group_ids = [aws_security_group.clixx_db_sg.id]
 
   iam_instance_profile {
@@ -284,33 +227,15 @@ resource "aws_launch_template" "clixx_lt" {
   }
 
   monitoring {
-    enabled = try(var.ec2_config.enable_detailed_monitoring, true)
+    enabled = true
   }
-
-  ebs_optimized = try(var.ec2_config.ebs_optimized, false)
 
   tag_specifications {
     resource_type = "instance"
     tags = merge(local.common_tags, {
-      Name = try(format("clixx-ec2-%s", var.env), "clixx-ec2-dev")
+      Name = "clixx-ec2-${var.env}"
     })
   }
-
-  tag_specifications {
-    resource_type = "volume"
-    tags = merge(local.common_tags, {
-      Name = try(format("clixx-ec2-volume-%s", var.env), "clixx-ec2-volume-dev")
-    })
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  depends_on = [
-    aws_iam_instance_profile.ec2_access_profile,
-    aws_security_group.clixx_db_sg
-  ]
 }
 
 # ========================================
@@ -318,31 +243,26 @@ resource "aws_launch_template" "clixx_lt" {
 # ========================================
 
 resource "aws_lb_target_group" "clixx_tg" {
-  name     = try(var.clixx_tg_name, format("clixx-tg-%s", var.env))
-  port     = try(var.clixx_tg_port, 80)
-  protocol = try(var.clixx_tg_protocol, "HTTP")
-  vpc_id   = local.vpc_id
-
+  name        = "${var.tg_config["name"]}-${var.env}"
+  port        = var.tg_config["port"]
+  protocol    = var.tg_config["protocol"]
+  vpc_id      = local.vpc_id
   target_type = "instance"
 
   health_check {
-    path                = try(var.clixx_tg_health_check_path, "/health.php")
+    path                = var.tg_config["health_check_path"]
     matcher             = "200-399"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 5
     interval            = 30
-    protocol            = try(var.clixx_tg_protocol, "HTTP")
+    protocol            = var.tg_config["protocol"]
     port                = "traffic-port"
   }
 
   tags = merge(local.common_tags, {
-    Name = try(var.clixx_tg_name, format("clixx-tg-%s", var.env))
+    Name = "${var.tg_config["name"]}-${var.env}"
   })
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 # ========================================
@@ -350,27 +270,20 @@ resource "aws_lb_target_group" "clixx_tg" {
 # ========================================
 
 resource "aws_lb" "clixx_alb" {
-  name               = try(var.clixx_alb_name, format("clixx-alb-%s", var.env))
-  internal           = try(var.clixx_alb_internal, false)
+  name               = "${var.alb_config["name"]}-${var.env}"
+  internal           = var.alb_config["internal"] == "true" ? true : false
   load_balancer_type = "application"
+  security_groups    = [aws_security_group.clixx_db_sg.id]
+  subnets            = local.alb_subnet_ids
 
-  security_groups = [aws_security_group.clixx_db_sg.id]
-  subnets = local.alb_subnet_ids
-
-  enable_deletion_protection = try(var.env == "prod" ? true : false, false)
+  enable_deletion_protection = var.env == "prod" ? true : false
 
   tags = merge(local.common_tags, {
-    Name = try(var.clixx_alb_name, format("clixx-alb-%s", var.env))
+    Name = "${var.alb_config["name"]}-${var.env}"
   })
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  depends_on = [aws_security_group.clixx_db_sg]
 }
 
-# ALB HTTP Listener
+#Apply listener to ALB
 resource "aws_lb_listener" "clixx_http" {
   load_balancer_arn = aws_lb.clixx_alb.arn
   port              = "80"
@@ -382,10 +295,6 @@ resource "aws_lb_listener" "clixx_http" {
   }
 
   tags = local.common_tags
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 # ========================================
@@ -393,23 +302,20 @@ resource "aws_lb_listener" "clixx_http" {
 # ========================================
 
 resource "aws_autoscaling_group" "clixx_asg" {
-  name                = try(var.ec2_config.asg_name, format("clixx-asg-%s", var.env))
-  min_size            = try(var.ec2_config.asg_min_size, 1)
-  max_size            = try(var.ec2_config.asg_max_size, 1)
-  desired_capacity    = try(var.ec2_config.asg_desired_capacity, 1)
-  vpc_zone_identifier = local.asg_subnet_ids
-
-  health_check_type         = try(var.ec2_config.health_check_type, "ELB")
-  health_check_grace_period = try(var.ec2_config.health_check_grace_period, 1200)
-
-  target_group_arns = [aws_lb_target_group.clixx_tg.arn]
+  name                      = "clixx-asg-${var.env}"
+  min_size                  = var.asg_config["min_size"]
+  max_size                  = var.asg_config["max_size"]
+  desired_capacity          = var.asg_config["desired_capacity"]
+  vpc_zone_identifier       = local.asg_subnet_ids
+  health_check_type         = "ELB"
+  health_check_grace_period = var.asg_config["health_check_grace_period"]
+  target_group_arns         = [aws_lb_target_group.clixx_tg.arn]
 
   launch_template {
     id      = aws_launch_template.clixx_lt.id
     version = "$Latest"
   }
 
-  # Dynamic tags from locals.common_tags
   dynamic "tag" {
     for_each = local.common_tags
     content {
@@ -420,26 +326,16 @@ resource "aws_autoscaling_group" "clixx_asg" {
   }
 
   lifecycle {
-    create_before_destroy = true
-    ignore_changes        = [desired_capacity]
+    ignore_changes = [desired_capacity]
   }
-
-  depends_on = [
-    aws_db_instance.clixx_db,
-    aws_lb_target_group.clixx_tg,
-    aws_launch_template.clixx_lt
-  ]
 }
-
 # ========================================
 # Route53 DNS Records
 # ========================================
 
 resource "aws_route53_record" "clixx_dns" {
-  count = (var.clixx_subdomain != "" && var.clixx_base_domain != "") ? 1 : 0
-
-  zone_id = try(data.aws_route53_zone.selected_zone[0].zone_id, "")
-  name    = try(format("%s.%s", var.clixx_subdomain, var.clixx_base_domain), "")
+  zone_id = data.aws_route53_zone.selected_zone[0].zone_id
+  name    = "${var.subdomain}.${var.root_domain}"
   type    = "A"
 
   alias {
@@ -447,10 +343,4 @@ resource "aws_route53_record" "clixx_dns" {
     zone_id                = aws_lb.clixx_alb.zone_id
     evaluate_target_health = true
   }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  depends_on = [aws_lb.clixx_alb]
 }

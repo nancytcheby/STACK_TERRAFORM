@@ -3,15 +3,12 @@ pipeline {
 
     parameters {
         string(name: 'RUNNER', defaultValue: 'Nancy', description: 'Runner name')
-        string(name: 'ENV', defaultValue: 'dev', description: 'Environment (dev, test, uat, prod)')
         booleanParam(name: 'SKIP_DESTROY', defaultValue: true, description: 'Skip terraform destroy stage')
     }
 
     environment {
         PATH = "${PATH}:${getTerraformPath()}"
-        AMI_ID = "clixx-ami-${BUILD_NUMBER}"
         VERSION = "1.0.${BUILD_NUMBER}"
-        TF_VAR_env = "${params.ENV}"
     }
 
     stages {
@@ -20,57 +17,32 @@ pipeline {
             steps {
                 script {
                     echo "Pipeline started by RUNNER = ${params.RUNNER}"
-                    echo "Environment = ${params.ENV}"
-
                     input(
                         id: 'confirm',
-                        message: "Start Pipeline? RUNNER = ${params.RUNNER}, ENV = ${params.ENV}",
+                        message: "Start Pipeline? RUNNER = ${params.RUNNER}",
                         ok: "Proceed"
                     )
                 }
             }
         }
 
-        stage('Packer AMI Build') {
-            when {
-                expression { params.SKIP_DESTROY == true }
-            }
+        stage('Terraform Init') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
-                    slackSend (color: '#FFFF00', message: "STARTING PACKER IMAGE BUILD: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-                    sh """
-                    echo "RUNNER: ${params.RUNNER}"
-                    echo "Building AMI: ${AMI_ID}"
-
-                    cd CLIXX/images
-
-                    sed -i "s/ami_name.*=.*/ami_name = \\"${AMI_ID}\\"/" image.pkr.hcl
-
-                    export PACKER_LOG=1
-                    export PACKER_LOG_PATH=\$WORKSPACE/packer.log
-
-                    /usr/bin/packer build -force image.pkr.hcl
-
-                    BUILT_AMI_ID=\$(grep -oP 'ami-[a-z0-9]+' manifest.json | tail -1)
-                    echo "Built AMI ID: \$BUILT_AMI_ID"
-                    echo \$BUILT_AMI_ID > ../../ami_id.txt
-                    """
-                    slackSend (color: '#00FF00', message: "COMPLETED PACKER BUILD: AMI = ${AMI_ID}")
-                }
+                //slackSend (color: '#FFFF00', message: "STARTING TERRAFORM INIT: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                sh """
+                cd CLIXX/terraform
+                terraform init -upgrade
+                """
             }
         }
 
-        stage('Terraform Init') {
+        stage('Terraform Validate') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
-                    slackSend (color: '#FFFF00', message: "STARTING TERRAFORM INIT: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-                    sh """
-                    cd CLIXX/terraform
-                    terraform init -upgrade
-                    """
-                }
+                //slackSend (color: '#FFFF00', message: "STARTING TERRAFORM VALIDATE: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                sh """
+                cd CLIXX/terraform
+                terraform validate
+                """
             }
         }
 
@@ -79,26 +51,11 @@ pipeline {
                 expression { params.SKIP_DESTROY == true }
             }
             steps {
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding',
-                     credentialsId: 'AWS_CREDS_AUTOMATION_ACCT'],
-                    string(credentialsId: 'CLIXX_DB_PASSWORD', variable: 'DB_PASS')
-                ]) {
-                    slackSend (color: '#FFFF00', message: "STARTING TERRAFORM PLAN: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-                    sh """
-                    AMI_ID_FROM_PACKER=\$(cat ami_id.txt)
-                    echo "Using AMI: \$AMI_ID_FROM_PACKER"
-
-                    cd CLIXX/terraform
-                    
-                    terraform plan \
-                        -var="custom_ami_id=\$AMI_ID_FROM_PACKER" \
-                        -var="env=${params.ENV}" \
-                        -var="clixx_db_password=\$DB_PASS" \
-                        -out=tfplan \
-                        -input=false
-                    """
-                }
+                //slackSend (color: '#FFFF00', message: "STARTING TERRAFORM PLAN: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                sh """
+                cd CLIXX/terraform
+                terraform plan -out=tfplan -input=false
+                """
             }
         }
 
@@ -107,133 +64,48 @@ pipeline {
                 expression { params.SKIP_DESTROY == true }
             }
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
-                    slackSend (color: '#FFFF00', message: "STARTING INFRASTRUCTURE BUILD: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-                    sh """
-                    cd CLIXX/terraform
-                    terraform apply -auto-approve tfplan
-                    """
-                    slackSend (color: '#00FF00', message: "INFRASTRUCTURE DEPLOYED: Check outputs for URLs")
-                }
+                //slackSend (color: '#FFFF00', message: "STARTING INFRASTRUCTURE BUILD: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                sh """
+                cd CLIXX/terraform
+                terraform apply -auto-approve tfplan
+                """
+                //slackSend (color: '#00FF00', message: "INFRASTRUCTURE DEPLOYED")
             }
         }
 
-        stage('Get Infrastructure Outputs') {
+        stage('Terraform Destroy') {
             when {
-                expression { params.SKIP_DESTROY == true }
+                expression { params.SKIP_DESTROY == false }
             }
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
-                    sh """
-                    cd CLIXX/terraform
-
-                    echo "========================================="
-                    echo "INFRASTRUCTURE OUTPUTS"
-                    echo "========================================="
-                    
-                    echo "ALB DNS:"
-                    terraform output -raw clixx_alb_dns_name
-                    
-                    echo ""
-                    echo "Database Endpoint:"
-                    terraform output -raw clixx_db_endpoint || echo "N/A"
-                    
-                    echo ""
-                    echo "EFS ID:"
-                    terraform output -raw clixx_efs_id
-                    
-                    echo ""
-                    echo "ASG Name:"
-                    terraform output -raw clixx_asg_name
-                    
-                    echo "========================================="
-                    """
+                script {
+                    input(
+                        id: 'confirm-destroy',
+                        message: "WARNING: About to DESTROY all infrastructure. Continue?",
+                        ok: "Yes, Destroy Everything"
+                    )
                 }
+                //slackSend (color: '#FF0000', message: "STARTING TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                sh """
+                cd CLIXX/terraform
+                terraform destroy -auto-approve
+                """
+                //slackSend (color: '#00FF00', message: "COMPLETED TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
             }
         }
-
-        stage('Build Vulnerability Report (Inspector2)') {
-            when {
-                expression { params.SKIP_DESTROY == true && (params.ENV == 'dev' || params.ENV == 'test') }
-            }
-            steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: 'AWS_CREDS_AUTOMATION_ACCT']]) {
-                    sh """
-                    cd CLIXX/terraform
-
-                    echo "Fetching ASG instance IDs..."
-                    ASG_NAME=\$(terraform output -raw clixx_asg_name)
-                    
-                    INSTANCE_IDS=\$(aws autoscaling describe-auto-scaling-groups \
-                        --auto-scaling-group-names \$ASG_NAME \
-                        --query 'AutoScalingGroups[0].Instances[*].InstanceId' \
-                        --output text \
-                        --region us-east-1)
-                    
-                    echo "Instance IDs = \$INSTANCE_IDS"
-
-                    echo "Enabling Inspector2 (if not already enabled)..."
-                    aws inspector2 enable --resource-types EC2 --region us-east-1 || true
-
-                    sleep 30
-
-                    for INSTANCE_ID in \$INSTANCE_IDS; do
-                        echo "Fetching vulnerability findings for \$INSTANCE_ID..."
-                        aws inspector2 list-findings \
-                          --filter-criteria "{\\"resourceId\\":[{\\"comparison\\":\\"EQUALS\\",\\"value\\":\\"\$INSTANCE_ID\\"}]}" \
-                          --region us-east-1 > \$WORKSPACE/inspector-findings-\$INSTANCE_ID.json
-                        echo "Report saved to inspector-findings-\$INSTANCE_ID.json"
-                    done
-                    """
-                    slackSend (color: '#FFFF00', message: "VULNERABILITY SCAN COMPLETED: Check workspace for reports")
-                }
-            }
-        }
-
- stage('Terraform Destroy') {
-    when {
-        expression { params.SKIP_DESTROY == false }
     }
-    steps {
-        script {
-            input(
-                id: 'confirm-destroy',
-                message: "WARNING: About to DESTROY all infrastructure. Continue?",
-                ok: "Yes, Destroy Everything"
-            )
-        }
-        withCredentials([
-            [$class: 'AmazonWebServicesCredentialsBinding',
-             credentialsId: 'AWS_CREDS_AUTOMATION_ACCT'],
-            string(credentialsId: 'CLIXX_DB_PASSWORD', variable: 'DB_PASS')
-        ]) {
-            slackSend (color: '#FF0000', message: "STARTING TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-            sh """
-            cd CLIXX/terraform
-            terraform destroy -auto-approve \
-                -var=env=${params.ENV} \
-                -var=clixx_db_password=\${DB_PASS}
-            """
-            slackSend (color: '#00FF00', message: "COMPLETED TERRAFORM DESTROY: Job '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
-        }
-    }
-}
-    }  
 
-    post {
-        success {
-            slackSend (color: '#00FF00', message: "PIPELINE SUCCESSFUL: '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
-        }
-        failure {
-            slackSend (color: '#FF0000', message: "PIPELINE FAILED: '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
-        }
-        always {
-            echo "Pipeline completed for ${params.RUNNER}"
-        }
-    }
+    //post {
+        //success {
+            //slackSend (color: '#00FF00', message: "PIPELINE SUCCESSFUL: '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
+        //}
+        //failure {
+            //slackSend (color: '#FF0000', message: "PIPELINE FAILED: '${params.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]'")
+        //}
+        //always {
+            //echo "Pipeline completed for ${params.RUNNER}"
+        //}
+    //}
 }
 
 def getTerraformPath() {
