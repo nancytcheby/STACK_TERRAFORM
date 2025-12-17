@@ -41,23 +41,67 @@ variable "vpc_cidr" {
   default     = "10.0.0.0/16"
 }
 
+# Public Subnets - ALB & Bastion (450 hosts each)
 variable "public_subnets" {
   description = "Map of public subnet names to CIDR blocks"
   type        = map(string)
   default = {
-    "public-1" = "10.0.0.0/24"
-    "public-2" = "10.0.1.0/24"
+    "public-1" = "10.0.0.0/23"
+    "public-2" = "10.0.2.0/23"
   }
 }
 
-variable "private_subnets" {
-  description = "Map of private subnet names to CIDR blocks"
+# Private Subnets - Web/Application Servers (250 hosts each)
+variable "private_web_subnets" {
+  description = "Map of private web server subnet names to CIDR blocks"
   type        = map(string)
   default = {
-    "private-1" = "10.0.2.0/24"
-    "private-2" = "10.0.3.0/24"
+    "private-web-1" = "10.0.4.0/24"
+    "private-web-2" = "10.0.5.0/24"
   }
 }
+
+# Private Subnets - RDS MySQL Database (680 hosts each)
+variable "private_rds_subnets" {
+  description = "Map of private RDS subnet names to CIDR blocks"
+  type        = map(string)
+  default = {
+    "private-rds-1" = "10.0.8.0/22"
+    "private-rds-2" = "10.0.12.0/22"
+  }
+}
+
+# Private Subnets - Oracle Database (254 hosts each)
+variable "private_oracle_subnets" {
+  description = "Map of private Oracle DB subnet names to CIDR blocks"
+  type        = map(string)
+  default = {
+    "private-oracle-1" = "10.0.16.0/24"
+    "private-oracle-2" = "10.0.17.0/24"
+  }
+}
+
+# Private Subnets - Java Database (50 hosts each)
+variable "private_java_db_subnets" {
+  description = "Map of private Java DB subnet names to CIDR blocks"
+  type        = map(string)
+  default = {
+    "private-java-db-1" = "10.0.18.0/26"
+    "private-java-db-2" = "10.0.18.64/26"
+  }
+}
+
+# Private Subnets - Java Application Servers (50 hosts each)
+variable "private_java_app_subnets" {
+  description = "Map of private Java app server subnet names to CIDR blocks"
+  type        = map(string)
+  default = {
+    "private-java-app-1" = "10.0.18.128/26"
+    "private-java-app-2" = "10.0.18.192/26"
+  }
+}
+
+
 
 # ----------------------------------------
 # Database Configuration

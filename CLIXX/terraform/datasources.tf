@@ -2,7 +2,7 @@
 # Data Sources for Clixx Infrastructure
 # ========================================
 
-# Get latest Amazon Linux 2 AMI
+# Get latest Amazon Linux AMI
 data "aws_ami" "amazon_linux" {
   most_recent = true
   owners      = ["083587468058", "818760291841"]
@@ -56,13 +56,18 @@ locals {
     Project     = "clixx"
   }
 
-  vpc_id               = aws_vpc.clixx_vpc.id
-  public_subnet_ids    = [for subnet in aws_subnet.clixx_public_subnet : subnet.id]
-  private_subnet_ids   = [for subnet in aws_subnet.clixx_private_subnet : subnet.id]
-  db_subnet_group_name = aws_db_subnet_group.clixx_db_subnet_group.name
+  vpc_id                  = aws_vpc.clixx_vpc.id
+  public_subnet_ids       = [for subnet in aws_subnet.public_subnet : subnet.id]
+  private_web_subnet_ids  = [for subnet in aws_subnet.private_web_subnet : subnet.id]
+  private_rds_subnet_ids  = [for subnet in aws_subnet.private_rds_subnet : subnet.id]
+  private_oracle_subnet_ids = [for subnet in aws_subnet.private_oracle_subnet : subnet.id]
+  private_java_db_subnet_ids = [for subnet in aws_subnet.private_java_db_subnet : subnet.id]
+  private_java_app_subnet_ids = [for subnet in aws_subnet.private_java_app_subnet : subnet.id]
 
-  efs_subnet_ids = local.private_subnet_ids
-  asg_subnet_ids = local.private_subnet_ids
-  alb_subnet_ids = local.public_subnet_ids
+  # For backwards compatibility with existing code
+  db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name
+  efs_subnet_ids       = local.private_web_subnet_ids
+  asg_subnet_ids       = local.private_web_subnet_ids
+  alb_subnet_ids       = local.public_subnet_ids
 }
 

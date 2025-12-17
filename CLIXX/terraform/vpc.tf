@@ -8,15 +8,15 @@ resource "aws_vpc" "clixx_vpc" {
   enable_dns_support   = true
 
   tags = merge(local.common_tags, {
-    Name = format("clixx-vpc-%s", var.env)
+    Name = "clixx-vpc-${var.env}"
   })
 }
 
 ########################
-# Create Public Subnets
+# Public Subnets (ALB & Bastion) - 450 hosts
 ########################
 
-resource "aws_subnet" "clixx_public_subnet" {
+resource "aws_subnet" "public_subnet" {
   for_each = var.public_subnets
 
   vpc_id                  = aws_vpc.clixx_vpc.id
@@ -25,25 +25,93 @@ resource "aws_subnet" "clixx_public_subnet" {
   map_public_ip_on_launch = true
 
   tags = merge(local.common_tags, {
-    Name = format("clixx-%s-%s", each.key, var.env)
+    Name = "clixx-${each.key}-${var.env}"
     Type = "Public"
   })
 }
 
 ########################
-# Create Private Subnets
+# Private Subnets - Web/Application Servers (250 hosts)
 ########################
 
-resource "aws_subnet" "clixx_private_subnet" {
-  for_each = var.private_subnets
+resource "aws_subnet" "private_web_subnet" {
+  for_each = var.private_web_subnets
 
   vpc_id            = aws_vpc.clixx_vpc.id
   cidr_block        = each.value
-  availability_zone = data.aws_availability_zones.available.names[index(keys(var.private_subnets), each.key)]
+  availability_zone = data.aws_availability_zones.available.names[index(keys(var.private_web_subnets), each.key)]
 
   tags = merge(local.common_tags, {
-    Name = format("clixx-%s-%s", each.key, var.env)
-    Type = "Private"
+    Name = "clixx-${each.key}-${var.env}"
+    Type = "Private-Web"
+  })
+}
+
+########################
+# Private Subnets - RDS MySQL Database (680 hosts)
+########################
+
+resource "aws_subnet" "private_rds_subnet" {
+  for_each = var.private_rds_subnets
+
+  vpc_id            = aws_vpc.clixx_vpc.id
+  cidr_block        = each.value
+  availability_zone = data.aws_availability_zones.available.names[index(keys(var.private_rds_subnets), each.key)]
+
+  tags = merge(local.common_tags, {
+    Name = "clixx-${each.key}-${var.env}"
+    Type = "Private-RDS"
+  })
+}
+
+########################
+# Private Subnets - Oracle Database (254 hosts)
+########################
+
+resource "aws_subnet" "private_oracle_subnet" {
+  for_each = var.private_oracle_subnets
+
+  vpc_id            = aws_vpc.clixx_vpc.id
+  cidr_block        = each.value
+  availability_zone = data.aws_availability_zones.available.names[index(keys(var.private_oracle_subnets), each.key)]
+
+  tags = merge(local.common_tags, {
+    Name = "clixx-${each.key}-${var.env}"
+    Type = "Private-Oracle"
+  })
+}
+
+########################
+# Private Subnets - Java Database (50 hosts)
+########################
+
+resource "aws_subnet" "private_java_db_subnet" {
+  for_each = var.private_java_db_subnets
+
+  vpc_id            = aws_vpc.clixx_vpc.id
+  cidr_block        = each.value
+  availability_zone = data.aws_availability_zones.available.names[index(keys(var.private_java_db_subnets), each.key)]
+
+  tags = merge(local.common_tags, {
+    Name = "clixx-${each.key}-${var.env}"
+    Type = "Private-Java-DB"
+  })
+}
+
+########################
+# Private Subnets - Java Application Servers (50 hosts)
+########################
+
+resource "aws_subnet" "private_java_app_subnet" {
+  for_each = var.private_java_app_subnets
+
+  vpc_id            = aws_vpc.clixx_vpc.id
+  cidr_block        = each.value
+  availability_zone = data.aws_availability_zones.available.names[index(keys(var.private_java_app_subnets), each.key)]
+
+  tags = merge(local.common_tags, {
+    Name = "clixx-${each.key}-${var.env}"
+    Type = "Private-Java-App"
   })
 }
 
@@ -55,7 +123,7 @@ resource "aws_internet_gateway" "clixx_igw" {
   vpc_id = aws_vpc.clixx_vpc.id
 
   tags = merge(local.common_tags, {
-    Name = format("clixx-igw-%s", var.env)
+    Name = "clixx-igw-${var.env}"
   })
 }
 
@@ -67,7 +135,7 @@ resource "aws_eip" "clixx_nat_eip" {
   domain = "vpc"
 
   tags = merge(local.common_tags, {
-    Name = format("clixx-nat-eip-%s", var.env)
+    Name = "clixx-nat-eip-${var.env}"
   })
 
   depends_on = [aws_internet_gateway.clixx_igw]
@@ -79,10 +147,10 @@ resource "aws_eip" "clixx_nat_eip" {
 
 resource "aws_nat_gateway" "clixx_nat" {
   allocation_id = aws_eip.clixx_nat_eip.id
-  subnet_id     = aws_subnet.clixx_public_subnet["public-1"].id
+  subnet_id     = aws_subnet.public_subnet["public-1"].id
 
   tags = merge(local.common_tags, {
-    Name = format("clixx-nat-gateway-%s", var.env)
+    Name = "clixx-nat-gateway-${var.env}"
   })
 
   depends_on = [aws_internet_gateway.clixx_igw]
@@ -92,7 +160,7 @@ resource "aws_nat_gateway" "clixx_nat" {
 # Public Route Table
 ########################
 
-resource "aws_route_table" "clixx_public_rt" {
+resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.clixx_vpc.id
 
   route {
@@ -101,23 +169,23 @@ resource "aws_route_table" "clixx_public_rt" {
   }
 
   tags = merge(local.common_tags, {
-    Name = format("clixx-public-rt-%s", var.env)
+    Name = "clixx-public-rt-${var.env}"
     Type = "Public"
   })
 }
 
-resource "aws_route_table_association" "clixx_public_rta" {
-  for_each = aws_subnet.clixx_public_subnet
+resource "aws_route_table_association" "public_rta" {
+  for_each = aws_subnet.public_subnet
 
   subnet_id      = each.value.id
-  route_table_id = aws_route_table.clixx_public_rt.id
+  route_table_id = aws_route_table.public_rt.id
 }
 
 ########################
 # Private Route Table
 ########################
 
-resource "aws_route_table" "clixx_private_rt" {
+resource "aws_route_table" "private_rt" {
   vpc_id = aws_vpc.clixx_vpc.id
 
   route {
@@ -126,28 +194,75 @@ resource "aws_route_table" "clixx_private_rt" {
   }
 
   tags = merge(local.common_tags, {
-    Name = format("clixx-private-rt-%s", var.env)
+    Name = "clixx-private-rt-${var.env}"
     Type = "Private"
   })
 }
 
-resource "aws_route_table_association" "clixx_private_rta" {
-  for_each = aws_subnet.clixx_private_subnet
+# Associate all private subnets with private route table
+resource "aws_route_table_association" "private_web_rta" {
+  for_each = aws_subnet.private_web_subnet
 
   subnet_id      = each.value.id
-  route_table_id = aws_route_table.clixx_private_rt.id
+  route_table_id = aws_route_table.private_rt.id
+}
+
+resource "aws_route_table_association" "private_rds_rta" {
+  for_each = aws_subnet.private_rds_subnet
+
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.private_rt.id
+}
+
+resource "aws_route_table_association" "private_oracle_rta" {
+  for_each = aws_subnet.private_oracle_subnet
+
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.private_rt.id
+}
+
+resource "aws_route_table_association" "private_java_db_rta" {
+  for_each = aws_subnet.private_java_db_subnet
+
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.private_rt.id
+}
+
+resource "aws_route_table_association" "private_java_app_rta" {
+  for_each = aws_subnet.private_java_app_subnet
+
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.private_rt.id
 }
 
 ########################
-# DB Subnet Group
+# DB Subnet Groups
 ########################
 
-resource "aws_db_subnet_group" "clixx_db_subnet_group" {
-  name       = format("clixx-db-subnet-group-%s", var.env)
-  subnet_ids = [for subnet in aws_subnet.clixx_private_subnet : subnet.id]
+resource "aws_db_subnet_group" "rds_subnet_group" {
+  name       = "clixx-rds-subnet-group-${var.env}"
+  subnet_ids = [for subnet in aws_subnet.private_rds_subnet : subnet.id]
 
   tags = merge(local.common_tags, {
-    Name = format("clixx-db-subnet-group-%s", var.env)
+    Name = "clixx-rds-subnet-group-${var.env}"
+  })
+}
+
+resource "aws_db_subnet_group" "oracle_subnet_group" {
+  name       = "clixx-oracle-subnet-group-${var.env}"
+  subnet_ids = [for subnet in aws_subnet.private_oracle_subnet : subnet.id]
+
+  tags = merge(local.common_tags, {
+    Name = "clixx-oracle-subnet-group-${var.env}"
+  })
+}
+
+resource "aws_db_subnet_group" "java_db_subnet_group" {
+  name       = "clixx-java-db-subnet-group-${var.env}"
+  subnet_ids = [for subnet in aws_subnet.private_java_db_subnet : subnet.id]
+
+  tags = merge(local.common_tags, {
+    Name = "clixx-java-db-subnet-group-${var.env}"
   })
 }
 
@@ -157,7 +272,7 @@ resource "aws_db_subnet_group" "clixx_db_subnet_group" {
 
 resource "aws_network_acl" "clixx_public_nacl" {
   vpc_id     = aws_vpc.clixx_vpc.id
-  subnet_ids = [for subnet in aws_subnet.clixx_public_subnet : subnet.id]
+  subnet_ids = [for subnet in aws_subnet.public_subnet : subnet.id]
 
   ingress {
     protocol   = "tcp"

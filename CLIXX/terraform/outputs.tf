@@ -45,9 +45,8 @@ output "clixx_key_pair_name" {
   value       = aws_key_pair.clixx_key.key_name
 }
 
-# Private key PEM is managed externally (clixx-key.pem file)
 # -----------------------
-# Load Balancer outputs (Story 6)
+# Load Balancer outputs 
 # -----------------------
 
 output "clixx_alb_arn" {
@@ -61,7 +60,7 @@ output "clixx_alb_dns_name" {
 }
 
 # -----------------------
-# Auto Scaling Group outputs (Story: ASG)
+# Auto Scaling Group outputs
 # -----------------------
 
 output "clixx_asg_name" {
@@ -85,8 +84,9 @@ output "clixx_bootstrap_user_data_b64" {
   value       = local.clixx_bootstrap_user_data_b64
   sensitive   = true
 }
-
+# ----------------
 # SSH Key outputs
+# ----------------
 output "clixx_key_private_pem" {
   description = "Private key PEM content for SSH access to instances"
   value       = tls_private_key.clixx_key.private_key_pem
@@ -98,20 +98,27 @@ output "clixx_instance_ids" {
   description = "List of EC2 instance IDs in the ASG"
   value       = data.aws_instances.clixx_asg_instances.ids
 }
-
+# ----------------
 # VPC ID output
+# ----------------
+
 output "clixx_vpc_id" {
-  description = "VPC ID used by Clixx infrastructure"
+  description = "VPC ID"
   value       = local.vpc_id
 }
 
+# -------------------
 # Subnet IDs outputs
-output "clixx_public_subnet_ids" {
-  description = "Public subnet IDs"
-  value       = local.public_subnet_ids
-}
+# -------------------
 
-output "clixx_private_subnet_ids" {
-  description = "Private subnet IDs"
-  value       = local.private_subnet_ids
+output "subnet_ids" {
+  description = "All subnet IDs"
+  value = {
+    public           = local.public_subnet_ids
+    private_web      = local.private_web_subnet_ids
+    private_rds      = local.private_rds_subnet_ids
+    private_oracle   = local.private_oracle_subnet_ids
+    private_java_db  = local.private_java_db_subnet_ids
+    private_java_app = local.private_java_app_subnet_ids
+  }
 }
