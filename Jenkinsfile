@@ -25,7 +25,7 @@ pipeline {
 
          stage('Packer AMI Build'){
              steps {
-                 slackSend (color: '#FFFF00', message: "STARTING PACKER IMAGE BUILD: Job '${env.RUNNER} ${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                 slackSend (color: '#FFFF00', message: "STARTING PACKER IMAGE BUILD: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                  sh '''
                  cd images
                  #sed -i "s/ami-stack-'[0-9]*$'/'${AMI_ID}'/" ./image.pkr.hcl
@@ -62,6 +62,8 @@ pipeline {
                 cd instances
                 terraform apply -auto-approve
                 """
+                slackSend (color: '#FFFF00', message: "ENDING DEPLOYMENT: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+
             }
         }
 
@@ -71,7 +73,7 @@ pipeline {
         //         cd instances
         //         aws inspector start-assessment-run --assessment-run-name Hardeningrun_'${VERSION}' --assessment-template-arn "arn:aws:inspector:us-east-1:336528460023:target/0-icADPfPR/template/0-vfjqO1E7" --region us-east-1
         //         """  
-        //         //slackSend (color: '#FFFF00', message: "ENDING DEPLOYMENT: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        //         slackSend (color: '#FFFF00', message: "ENDING DEPLOYMENT: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
         //     }
         // }
 
