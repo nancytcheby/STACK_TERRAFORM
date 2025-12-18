@@ -25,7 +25,7 @@ pipeline {
 
          stage('Packer AMI Build'){
              steps {
-                 //slackSend (color: '#FFFF00', message: "STARTING PACKER IMAGE BUILD: Job '${env.RUNNER} ${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                 slackSend (color: '#FFFF00', message: "STARTING PACKER IMAGE BUILD: Job '${env.RUNNER} ${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                  sh '''
                  cd images
                  #sed -i "s/ami-stack-'[0-9]*$'/'${AMI_ID}'/" ./image.pkr.hcl
@@ -38,7 +38,7 @@ pipeline {
 
         stage('Terraform init'){
             steps {
-                // slackSend (color: '#FFFF00', message: "STARTING TERRAFORM DEPLOYMENT: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                slackSend (color: '#FFFF00', message: "STARTING TERRAFORM DEPLOYMENT: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                 sh """
                 cd instances
                 terraform init -upgrade
@@ -57,7 +57,7 @@ pipeline {
 
         stage('Build Instance and Vulnerability Scan'){
             steps {
-                // slackSend (color: '#FFFF00', message: "STARTING INFRASTRUCTURE BUILD AND VULNERABILITY SCAN: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                slackSend (color: '#FFFF00', message: "STARTING INFRASTRUCTURE BUILD AND VULNERABILITY SCAN: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                 sh """
                 cd instances
                 terraform apply -auto-approve
