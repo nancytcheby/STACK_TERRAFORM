@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'RUNNER', defaultValue: 'Nancy', description: 'Runner name')
+    }
+
+    environment {
+        PATH = "${PATH}:${getTerraformPath()}"
+        AMI_ID = "ecs-optimized-ami-${BUILD_NUMBER}"
+        VERSION = "1.0.${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Initial Stage') {
+            steps {
+                script {
+                    def userInput = input(id: 'confirm', message: 'Start ECS AMI Pipeline?', parameters: [ [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Start Pipeline', name: 'confirm'] ])
+                }
+            }
+        }
+
+        stage('Packer ECS-Optimized AMI Build') {
+            steps {
+                //slackSend (color: '#FFFF00', message: "STARTING ECS-OPTIMIZED AMI BUILD: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+                sh '''
+                cd images
+                export PACKER_LOG=1
+                export PACKER_LOG_PATH=$WORKSPACE/packer_ecs.log
+                /usr/bin/packer init ecs_image.pkr.hcl
+                /usr/bin/packer build ecs_image.pkr.hcl
+                '''
+                //slackSend (color: '#00FF00', message: "ECS-OPTIMIZED AMI BUILD COMPLETE: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+            }
+        }
+    }
+
+    //post {
+        //success {
+            //slackSend (color: '#00FF00', message: "ECS AMI PIPELINE SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        //}
+        //failure {
+            slackSend (color: '#FF0000', message: "ECS AMI PIPELINE FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        //}
+    //}
+}
+
+def getTerraformPath(){
+    def tfHome = tool name: 'terraform-14', type: 'terraform'
+    return tfHome
+}
