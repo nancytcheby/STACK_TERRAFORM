@@ -28,7 +28,8 @@ pipeline {
                  slackSend (color: '#FFFF00', message: "STARTING PACKER IMAGE BUILD: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
                  sh '''
                  cd images
-                 #sed -i "s/ami-stack-'[0-9]*$'/'${AMI_ID}'/" ./image.pkr.hcl
+                 packer init -upgrade .
+                 packer validate image.pkr.hcl
                  export PACKER_LOG=1
                  export PACKER_LOG_PATH=$WORKSPACE/packer.log
                  /usr/bin/packer build -force image.pkr.hcl
@@ -67,15 +68,15 @@ pipeline {
             }
         }
 
-        // stage('Build Vulnerability Report'){
-        //     steps {
-        //         sh """
-        //         cd instances
-        //         aws inspector start-assessment-run --assessment-run-name Hardeningrun_'${VERSION}' --assessment-template-arn "arn:aws:inspector:us-east-1:336528460023:target/0-icADPfPR/template/0-vfjqO1E7" --region us-east-1
-        //         """  
-        //         slackSend (color: '#FFFF00', message: "ENDING DEPLOYMENT: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-        //     }
-        // }
+        stage('Build Vulnerability Report'){
+            steps {
+                sh """
+                cd instances
+                terraform destroy -auto-approve
+                """  
+                slackSend (color: '#FFFF00', message: "ENDING DEPLOYMENT: Job '${env.RUNNER} ${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+            }
+        }
 
     }
 }

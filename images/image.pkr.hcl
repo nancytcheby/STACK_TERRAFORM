@@ -1,5 +1,6 @@
 variable "aws_source_ami" {
-  default = "al2023-ami-2023*-x86_64"
+  # ECS-optimized Amazon Linux 2023 AMI
+  default = "al2023-ami-ecs-hvm-2023*-x86_64"
 }
 
 variable "aws_instance_type" {
@@ -7,7 +8,7 @@ variable "aws_instance_type" {
 }
 
 variable "ami_name" {
-  default = "ami-stack-14"
+  default = "ami-stack-14-ecs"
 }
 
 variable "component" {
@@ -30,20 +31,20 @@ variable "aws_region" {
 
 data "amazon-ami" "source_ami" {
   most_recent = true
-  owners      = ["amazon"]
+  owners      = ["818760291841","083587468058"]
 
   filters = {
-    name                = var.aws_source_ami
+    name                = ${var.aws_source_ami}
   }
-  region = var.aws_region
+  region = ${var.aws_region}
 }
 # ------------------------------------------------------------------------------------
 
 source "amazon-ebs" "amazon_ebs" {
   # assume_role {
-  #   role_arn     = "arn:aws:iam::560089993749:role/Engineer"
+  #   role_arn     = "arn:aws:iam::818760291841:role/Engineer"
   # }
-  ami_name                = "${var.ami_name}"
+  ami_name =                "${var.ami_name}-${local.timestamp}"
   ami_regions             = "${var.ami_regions}"
   ami_users               = "${var.aws_accounts}"
   snapshot_users          = "${var.aws_accounts}"
